@@ -1,0 +1,32 @@
+{% extends "base_coordinator.html" %}
+
+{% block title %}Edit User{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+
+    <div class="col-md-7">
+
+        <div class="card shadow-sm">
+
+            <div class="card-header">
+                <h4 class="mb-0">Edit User</h4>
+            </div>
+
+            <div class="card-body">
+
+                {% include "partials/_flash_messages.html" %}
+
+                {% set submit_label = "Save Changes" %}
+                {% include "partials/_user_form.html" %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

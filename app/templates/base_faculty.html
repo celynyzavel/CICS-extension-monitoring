@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block role_label %}Faculty Extensionist{% endblock %}
+{% block sidebar_nav %}
+<a class="sidebar-link {% if request.endpoint == 'main.index' %}active{% endif %}" href="{{ url_for('main.index') }}"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+<a class="sidebar-link" href="#"><i class="bi bi-kanban"></i> Programs</a>
+<a class="sidebar-link" href="#"><i class="bi bi-kanban"></i> Projects</a>
+<a class="sidebar-link" href="#"><i class="bi bi-calendar-event"></i> Activities</a>
+<a class="sidebar-link" href="#"><i class="bi bi-wallet2"></i> Budget Utilization</a>
+<a class="sidebar-link" href="#"><i class="bi bi-bar-chart"></i> Reports &amp; Analytics</a>
+{% endblock %}

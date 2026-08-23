@@ -1,0 +1,118 @@
+{% from "macros.html" import role_options %}
+
+<form method="POST">
+
+    <div class="row">
+
+        <div class="col-md-6 mb-3">
+
+            <label class="form-label">
+                First Name
+            </label>
+
+            <input
+                type="text"
+                name="first_name"
+                class="form-control"
+                value="{{ user.first_name if user else '' }}"
+                required
+            >
+
+        </div>
+
+
+        <div class="col-md-6 mb-3">
+
+            <label class="form-label">
+                Last Name
+            </label>
+
+            <input
+                type="text"
+                name="last_name"
+                class="form-control"
+                value="{{ user.last_name if user else '' }}"
+                required
+            >
+
+        </div>
+
+    </div>
+
+
+    <div class="mb-3">
+
+        <label class="form-label">
+            Email
+        </label>
+
+        <input
+            type="email"
+            name="email"
+            class="form-control"
+            value="{{ user.email if user else '' }}"
+            required
+        >
+
+    </div>
+
+
+    <div class="mb-3">
+
+        <label class="form-label">
+            Password
+        </label>
+
+        <input
+            type="password"
+            name="password"
+            class="form-control"
+            {% if user %}placeholder="Leave blank to keep current password"{% endif %}
+            {% if not user %}required{% endif %}
+        >
+
+        {% if user %}
+        <div class="form-text">
+            Leave blank to keep the current password.
+        </div>
+        {% endif %}
+
+    </div>
+
+
+    <div class="mb-4">
+
+        <label class="form-label">
+            Role
+        </label>
+
+        <select
+            name="role"
+            class="form-select"
+            required
+        >
+            {{ role_options(user.role if user else "") }}
+        </select>
+
+    </div>
+
+
+    <div class="d-flex gap-2">
+
+        <a
+            href="{{ url_for('main.users') }}"
+            class="btn btn-secondary"
+        >
+            Cancel
+        </a>
+
+        <button
+            type="submit"
+            class="btn btn-primary"
+        >
+            {{ submit_label }}
+        </button>
+
+    </div>
+
+</form>

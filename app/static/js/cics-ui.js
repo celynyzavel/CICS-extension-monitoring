@@ -1,0 +1,38 @@
+/* CICS System v14 visual interaction layer for Flask.
+   This file only handles UI behavior; Flask authentication, routes,
+   forms, database calls, and existing application logic remain untouched. */
+(function () {
+  const sidebar = document.getElementById('cicsSidebar');
+  const menu = document.getElementById('menuToggleCics');
+  const user = document.getElementById('userChipCics');
+
+  if (menu && sidebar) {
+    menu.addEventListener('click', function () {
+      sidebar.classList.toggle('open');
+    });
+  }
+
+  if (user) {
+    user.addEventListener('click', function () {
+      window.location.href = '/logout';
+    });
+  }
+
+  document.querySelectorAll('.sidebar-link').forEach(function (link) {
+    link.addEventListener('click', function () {
+      if (window.innerWidth <= 860 && sidebar) sidebar.classList.remove('open');
+    });
+  });
+
+  window.cicsShowToast = function (message) {
+    const toast = document.getElementById('cicsToast');
+    const text = document.getElementById('cicsToastMsg');
+    if (!toast || !text) return;
+    text.textContent = message;
+    toast.classList.add('show');
+    clearTimeout(window.__cicsToastTimer);
+    window.__cicsToastTimer = setTimeout(function () {
+      toast.classList.remove('show');
+    }, 2600);
+  };
+})();

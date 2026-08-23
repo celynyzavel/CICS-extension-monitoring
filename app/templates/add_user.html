@@ -1,0 +1,32 @@
+{% extends "base_coordinator.html" %}
+
+{% block title %}Add User{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+
+    <div class="col-md-7">
+
+        <div class="card shadow-sm">
+
+            <div class="card-header">
+                <h4 class="mb-0">Add New User</h4>
+            </div>
+
+            <div class="card-body">
+
+                {% include "partials/_flash_messages.html" %}
+
+                {% set submit_label = "Create User" %}
+                {% include "partials/_user_form.html" %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

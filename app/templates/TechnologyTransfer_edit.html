@@ -1,0 +1,332 @@
+{% extends "base_coordinator.html" %}
+
+{% block title %}Edit Technology Transfer{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+
+    <div class="col-md-8">
+
+        <div class="card shadow-sm">
+
+            <div class="card-header">
+                <h4 class="mb-0">Edit Technology Transfer Record</h4>
+            </div>
+
+            <div class="card-body">
+
+                {% include "partials/_flash_messages.html" %}
+
+                <form method="POST">
+
+                    <div class="row">
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="form-label">
+                                System Name
+                            </label>
+
+                            <input
+                                type="text"
+                                name="system_name"
+                                class="form-control"
+                                value="{{ technology.system_name }}"
+                                required
+                            >
+
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="form-label">
+                                System Type
+                            </label>
+
+                            <select
+                                name="system_type"
+                                id="system_type"
+                                class="form-select"
+                                required
+                            >
+
+                                <option value="">
+                                    Select Type
+                                </option>
+
+                                <option
+                                    value="Web System"
+                                    {% if technology.system_type == "Web System" %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    Web System
+                                </option>
+
+                                <option
+                                    value="Web Application"
+                                    {% if technology.system_type == "Web Application" %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    Web Application
+                                </option>
+
+                                <option
+                                    value="Desktop Application"
+                                    {% if technology.system_type == "Desktop Application" %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    Desktop Application
+                                </option>
+
+                                <option
+                                    value="Mobile Application"
+                                    {% if technology.system_type == "Mobile Application" %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    Mobile Application
+                                </option>
+
+                                <option
+                                    value="Other"
+                                    {% if technology.system_type not in [
+                                        "Web System",
+                                        "Web Application",
+                                        "Desktop Application",
+                                        "Mobile Application"
+                                    ] %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    Other
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                        <div
+                            class="col-md-6 mb-3"
+                            id="otherSystemTypeDiv"
+                            {% if technology.system_type not in [
+                                "Web System",
+                                "Web Application",
+                                "Desktop Application",
+                                "Mobile Application"
+                            ] %}
+                                style="display: block;"
+                            {% else %}
+                                style="display: none;"
+                            {% endif %}
+                        >
+
+                            <label class="form-label">
+                                Please Specify
+                            </label>
+
+                            <input
+                                type="text"
+                                name="other_system_type"
+                                id="other_system_type"
+                                class="form-control"
+                                placeholder="Please specify the system type"
+                                value="{% if technology.system_type not in ['Web System', 'Web Application', 'Desktop Application', 'Mobile Application'] %}{{ technology.system_type }}{% endif %}"
+                                {% if technology.system_type not in [
+                                    "Web System",
+                                    "Web Application",
+                                    "Desktop Application",
+                                    "Mobile Application"
+                                ] %}
+                                    required
+                                {% endif %}
+                            >
+
+                        </div>
+
+                    </div>
+
+                    <div class="row">
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="form-label">
+                                Program
+                            </label>
+
+                            <input
+                                type="text"
+                                name="program"
+                                class="form-control"
+                                value="{{ technology.program }}"
+                                required
+                            >
+
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="form-label">
+                                Deployment Date
+                            </label>
+
+                            <input
+                                type="date"
+                                name="deployment_date"
+                                class="form-control"
+                                value="{{ technology.deployment_date.strftime('%Y-%m-%d') }}"
+                                required
+                            >
+
+                        </div>
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Partner Institution
+                        </label>
+
+                        <input
+                            type="text"
+                            name="partner_institution"
+                            class="form-control"
+                            value="{{ technology.partner_institution }}"
+                            required
+                        >
+
+                    </div>
+
+                    <div class="row">
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="form-label">
+                                Users Trained
+                            </label>
+
+                            <input
+                                type="number"
+                                name="user_trained"
+                                class="form-control"
+                                min="0"
+                                value="{{ technology.user_trained }}"
+                                required
+                            >
+
+                        </div>
+
+                    </div>
+
+                    <div class="row">
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="form-label">
+                                Deployment Status
+                            </label>
+
+                            <select
+                                name="usage_status"
+                                class="form-select"
+                                required
+                            >
+
+                                <option
+                                    value="Active"
+                                    {% if technology.usage_status == "Active" %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    Active
+                                </option>
+
+                                <option
+                                    value="Inactive"
+                                    {% if technology.usage_status == "Inactive" %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    Inactive
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                    </div>
+
+                    <div class="mb-4">
+
+                        <label class="form-label">
+                            Description
+                        </label>
+
+                        <textarea
+                            name="description"
+                            class="form-control"
+                            rows="3"
+                        >{{ technology.description or "" }}</textarea>
+
+                    </div>
+                    <div class="d-flex gap-2">
+
+                        <a
+                            href="{{ url_for('main.TechnologyTransfer') }}"
+                            class="btn btn-secondary"
+                        >
+                            Cancel
+                        </a>
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary"
+                        >
+                            Save Changes
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+document.addEventListener('DOMContentLoaded', function () {
+
+    const systemType = document.getElementById('system_type');
+    const otherDiv = document.getElementById('otherSystemTypeDiv');
+    const otherInput = document.getElementById('other_system_type');
+
+    systemType.addEventListener('change', function () {
+
+        if (this.value === 'Other') {
+            otherDiv.style.display = 'block';
+            otherInput.required = true;
+            otherInput.focus();
+
+        } else {
+            otherDiv.style.display = 'none';
+            otherInput.required = false;
+            otherInput.value = '';
+
+        }
+
+    });
+
+});
+
+</script>
+
+{% endblock %}

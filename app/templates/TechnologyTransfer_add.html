@@ -1,0 +1,220 @@
+{% extends "base_coordinator.html" %}
+
+{% block title %}Add Technology Transfer{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+
+        <div class="card shadow-sm">
+
+            <div class="card-header">
+                <h4 class="mb-0">Add Technology Transfer Record</h4>
+            </div>
+
+            <div class="card-body">
+
+                {% include "partials/_flash_messages.html" %}
+
+                <form method="POST">
+
+                    <div class="row">
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">System Name</label>
+                            <input
+                                type="text"
+                                name="system_name"
+                                class="form-control"
+                                required
+                            >
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">System Type</label>
+
+                            <select
+                                name="system_type"
+                                id="system_type"
+                                class="form-select"
+                                required
+                            >
+                                <option value="">Select Type</option>
+                                <option value="Web System">Web System</option>
+                                <option value="Web Application">Web Application</option>
+                                <option value="Desktop Application">Desktop Application</option>
+                                <option value="Mobile Application">Mobile Application</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+
+                        <div
+                            class="col-md-6 mb-3"
+                            id="otherSystemTypeDiv"
+                            style="display: none;"
+                        >
+                            <label class="form-label">Please Specify</label>
+
+                            <input
+                                type="text"
+                                name="other_system_type"
+                                id="other_system_type"
+                                class="form-control"
+                                placeholder="Please specify the system type"
+                            >
+                        </div>
+
+                    </div>
+
+                    <div class="row">
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Program</label>
+
+                            <input
+                                type="text"
+                                name="program"
+                                class="form-control"
+                                required
+                            >
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Deployment Date</label>
+
+                            <input
+                                type="date"
+                                name="deployment_date"
+                                class="form-control"
+                                required
+                            >
+                        </div>
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Partner Institution
+                        </label>
+
+                        <input
+                            type="text"
+                            name="partner_institution"
+                            class="form-control"
+                            required
+                        >
+
+                    </div>
+
+                    <div class="row">
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="form-label">
+                                Users Trained
+                            </label>
+
+                            <input
+                                type="number"
+                                name="user_trained"
+                                class="form-control"
+                                min="0"
+                                value="0"
+                                required
+                            >
+
+                        </div>
+
+                    </div>
+
+                    <div class="row">
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="form-label">
+                                Deployment Status
+                            </label>
+
+                            <select
+                                name="usage_status"
+                                class="form-select"
+                                required
+                            >
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                            </select>
+
+                        </div>
+
+                    </div>
+
+                    <div class="mb-4">
+
+                        <label class="form-label">
+                            Description
+                        </label>
+
+                        <textarea
+                            name="description"
+                            class="form-control"
+                            rows="3"
+                        ></textarea>
+
+                    </div>
+
+                    <div class="d-flex gap-2">
+
+                        <a
+                            href="{{ url_for('main.TechnologyTransfer') }}"
+                            class="btn btn-secondary"
+                        >
+                            Cancel
+                        </a>
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary"
+                        >
+                            Save Technology Transfer
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+        const systemType = document.getElementById('system_type');
+        const otherDiv = document.getElementById('otherSystemTypeDiv');
+        const otherInput = document.getElementById('other_system_type');
+
+        systemType.addEventListener('change', function () {
+
+            if (this.value === 'Other') {
+
+                otherDiv.style.display = 'block';
+                otherInput.required = true;
+
+            } else {
+                otherDiv.style.display = 'none';
+                otherInput.required = false;
+                otherInput.value = '';
+            }
+
+        });
+
+    });
+</script>
+
+{% endblock %}

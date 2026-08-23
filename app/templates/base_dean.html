@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block role_label %}College Dean{% endblock %}
+{% block sidebar_nav %}
+<a class="sidebar-link {% if request.endpoint == 'main.index' %}active{% endif %}" href="{{ url_for('main.index') }}"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+<a class="sidebar-link" href="#"><i class="bi bi-bar-chart"></i> Reports &amp; Analytics</a>
+{% endblock %}

@@ -1,0 +1,131 @@
+{% extends "base_coordinator.html" %}
+
+{% from "macros.html" import role_label %}
+
+{% block title %}User Management{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+        <h2>User Management</h2>
+        <p class="text-muted mb-0">
+            Manage users of the CICS Extension Monitoring System.
+        </p>
+    </div>
+
+    <a href="{{ url_for('main.add_user') }}" class="btn btn-primary">
+        + Add User
+    </a>
+
+</div>
+
+
+{% include "partials/_flash_messages.html" %}
+
+
+<div class="card shadow-sm">
+
+    <div class="card-body">
+
+        <div class="table-responsive">
+
+            <table class="table table-bordered table-hover align-middle">
+
+                <thead class="table-light">
+
+                    <tr>
+                        <th>ID</th>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for user in users %}
+
+                    <tr>
+
+                        <td>{{ user.id }}</td>
+
+                        <td>{{ user.first_name }}</td>
+
+                        <td>{{ user.last_name }}</td>
+
+                        <td>{{ user.email }}</td>
+
+                        <td>
+                            {{ role_label(user.role) }}
+                        </td>
+
+                        <td class="text-end">
+
+                            <a
+                                href="{{ url_for('main.edit_user', user_id=user.id) }}"
+                                class="btn btn-sm btn-outline-primary"
+                            >
+                                Edit
+                            </a>
+
+                            {% if user.id != current_user.id %}
+
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-outline-danger"
+                                data-bs-toggle="modal"
+                                data-bs-target="#deleteModal{{ user.id }}"
+                            >
+                                Delete
+                            </button>
+
+                            <div class="modal fade" id="deleteModal{{ user.id }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Delete User</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+
+                                        <div class="modal-body">
+                                            Are you sure you want to delete
+                                            <strong>{{ user.first_name }} {{ user.last_name }}</strong>?
+                                            This action cannot be undone.
+                                        </div>
+
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <form method="POST" action="{{ url_for('main.delete_user', user_id=user.id) }}">
+                                                <button type="submit" class="btn btn-danger">Delete</button>
+                                            </form>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,22 @@
+{# Shared helpers for displaying and selecting a user's role. #}
+
+{% macro role_label(role) -%}
+    {%- if role == "FACULTY" -%}
+        Faculty Extensionist
+    {%- elif role == "COORDINATOR" -%}
+        Extension Coordinator
+    {%- elif role == "DEAN" -%}
+        College Dean
+    {%- else -%}
+        {{ role }}
+    {%- endif -%}
+{%- endmacro %}
+
+{% macro role_options(selected_role="") -%}
+    {% if not selected_role %}
+    <option value="">Select Role</option>
+    {% endif %}
+    <option value="FACULTY" {% if selected_role == "FACULTY" %}selected{% endif %}>Faculty Extensionist</option>
+    <option value="COORDINATOR" {% if selected_role == "COORDINATOR" %}selected{% endif %}>Extension Coordinator</option>
+    <option value="DEAN" {% if selected_role == "DEAN" %}selected{% endif %}>College Dean</option>
+{%- endmacro %}
