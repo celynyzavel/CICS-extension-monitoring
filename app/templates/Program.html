@@ -1,0 +1,183 @@
+{% extends base_template %}
+
+{% block title %}Extension Programs{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold">Extension Programs</h2>
+        <p class="text-muted mb-0">
+            {% if can_manage %}
+                Manage and monitor your extension programs.
+            {% else %}
+                View extension programs inputted by Faculty Extensionists.
+            {% endif %}
+        </p>
+    </div>
+
+    {% if can_manage %}
+    <a href="{{ url_for('main.Program_add') }}"
+       class="btn btn-primary">
+        + Add Extension Program
+    </a>
+    {% endif %}
+</div>
+
+{% include "partials/_flash_messages.html" %}
+
+
+<div class="card shadow-sm">
+    <div class="card-body">
+
+        {% if programs %}
+
+        <div class="table-responsive">
+
+            <table class="table table-hover align-middle">
+
+                <thead class="table-light">
+                    <tr>
+                        <th>Program Name</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Location</th>
+                        <th>Status</th>
+                        <th>Description</th>
+                        {% if not can_manage %}
+                        <th>Added By</th>
+                        {% endif %}
+                        {% if can_manage %}
+                        <th>Action</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for program in programs %}
+                    <tr>
+                        <td>
+                            <strong>{{ program.program_name }}</strong>
+                        </td>
+
+                        <td>
+                            {{ program.start_date.strftime('%B %d, %Y') }}
+                        </td>
+
+                        <td>
+                            {{ program.end_date.strftime('%B %d, %Y') }}
+                        </td>
+
+                        <td>
+                            {{ program.barangay }} {{ program.city }} {{ program.province }}
+                        </td>
+
+                        <td>
+                            {% if program.status == "Completed" %}
+                                <span class="badge bg-success">{{ program.status }}</span>
+                            {% elif program.status == "Ongoing" %}
+                                <span class="badge bg-primary">{{ program.status }}</span>
+                            {% elif program.status == "Cancelled" %}
+                                <span class="badge bg-danger">{{ program.status }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ program.status }}</span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {{ program.description or '-' }}
+                        </td>
+
+                        {% if not can_manage %}
+                        <td>
+                            {{ program.user.first_name }} {{ program.user.last_name }}
+                        </td>
+                        {% endif %}
+
+                        {% if can_manage %}
+                        <td>
+                            <div class="d-flex gap-2">
+
+                                <a href="{{ url_for('main.Program_edit', program_id=program.program_id) }}"
+                                   class="btn btn-sm btn-outline-primary">
+                                    Edit
+                                </a>
+
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-outline-danger"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#deleteModal{{ program.program_id }}"
+                                >
+                                    Delete
+                                </button>
+
+                                <div class="modal fade" id="deleteModal{{ program.program_id }}" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Delete Extension Program</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+
+                                            <div class="modal-body">
+                                                Are you sure you want to delete
+                                                <strong>{{ program.program_name }}</strong>?
+                                                This action cannot be undone.
+                                            </div>
+
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <form method="POST" action="{{ url_for('main.delete_program', program_id=program.program_id) }}">
+                                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                                </form>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </td>
+                        {% endif %}
+
+                    </tr>
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        {% else %}
+
+        <div class="text-center py-5">
+
+            <h5>No Extension Programs</h5>
+
+            <p class="text-muted">
+                {% if can_manage %}
+                    No extension programs have been added yet.
+                {% else %}
+                    No Faculty Extensionist has inputted any extension programs yet.
+                {% endif %}
+            </p>
+
+            {% if can_manage %}
+            <a href="{{ url_for('main.Program_add') }}"
+               class="btn btn-primary">
+                Add First Extension Program
+            </a>
+            {% endif %}
+
+        </div>
+
+        {% endif %}
+
+    </div>
+</div>
+
+{% endblock %}

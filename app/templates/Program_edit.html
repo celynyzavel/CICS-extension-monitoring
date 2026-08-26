@@ -1,0 +1,159 @@
+{% extends "base_faculty.html" %}
+
+{% block title %}Edit Extension Program{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+
+        <div class="card shadow-sm">
+
+            <div class="card-header">
+                <h4 class="mb-0">Edit Extension Program</h4>
+            </div>
+
+            <div class="card-body">
+
+                {% include "partials/_flash_messages.html" %}
+
+                <form method="POST">
+
+                    <div class="row">
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Program Name</label>
+                            <input
+                                type="text"
+                                name="program_name"
+                                class="form-control"
+                                value="{{ program.program_name }}"
+                                required
+                            >
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Status</label>
+                            <select
+                                name="status"
+                                class="form-select"
+                                required
+                            >
+                                <option value="Planning" {% if program.status == "Planning" %}selected{% endif %}>Planning</option>
+                                <option value="Ongoing" {% if program.status == "Ongoing" %}selected{% endif %}>Ongoing</option>
+                                <option value="Completed" {% if program.status == "Completed" %}selected{% endif %}>Completed</option>
+                                
+                            </select>
+                        </div>
+
+                    </div>
+
+                    <div class="row">
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Start Date</label>
+                            <input
+                                type="date"
+                                name="start_date"
+                                class="form-control"
+                                value="{{ program.start_date.strftime('%Y-%m-%d') }}"
+                                required
+                            >
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">End Date</label>
+                            <input
+                                type="date"
+                                name="end_date"
+                                class="form-control"
+                                value="{{ program.end_date.strftime('%Y-%m-%d') }}"
+                                required
+                            >
+                        </div>
+
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold">Location</label>
+                    </div>
+
+                    <div class="row">
+
+                        <div class="col-md-4 mb-3">
+                                <select id="province_select" class="form-select" required>
+                                    <option value="">Select Province</option>
+                                </select>
+                                <input type="hidden" name="province" id="province_input">
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <select id="city_select" class="form-select" required disabled>
+                                    <option value="">Select Province First</option>
+                                </select>
+                                <input type="hidden" name="city" id="city_input">
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <select id="barangay_select" class="form-select" required disabled>
+                                    <option value="">Select City/Municipality First</option>
+                                </select>
+                                <input type="hidden" name="barangay" id="barangay_input">
+                            </div>
+
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Description</label>
+                        <textarea
+                            name="description"
+                            class="form-control"
+                            rows="3"
+                        >{{ program.description or "" }}</textarea>
+                    </div>
+
+                    <div class="d-flex gap-2">
+
+                        <a
+                            href="{{ url_for('main.Program') }}"
+                            class="btn btn-secondary"
+                        >
+                            Cancel
+                        </a>
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary"
+                        >
+                            Save Changes
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/location-cascade.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        initLocationCascade({
+            provinceSelectId: "province_select",
+            citySelectId: "city_select",
+            barangaySelectId: "barangay_select",
+            provinceInputId: "province_input",
+            cityInputId: "city_input",
+            barangayInputId: "barangay_input",
+            initialProvince: {{ program.province | tojson }},
+            initialCity: {{ program.city | tojson }},
+            initialBarangay: {{ program.barangay | tojson }}
+        });
+    });
+</script>
+
+{% endblock %}

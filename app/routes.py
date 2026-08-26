@@ -1,12 +1,84 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
 from authlib.integrations.flask_client import OAuth
 from datetime import datetime
+import json
+from pathlib import Path
 
 from app import db, oauth
-from app.models import User, TechnologyTransfer as TechnologyTransfer_model
+from app.models import User, TechnologyTransfer as TechnologyTransfer_model, Program as Program_model
 
 main = Blueprint("main", __name__)
+
+VALID_PROGRAM_STATUSES = ("Planning", "Ongoing", "Completed", "Cancelled")
+
+# ---------------------------------------------------------------------------
+# Philippine location data (Province -> City/Municipality -> Barangay)
+# Used to power the cascading location selects on the Program forms.
+# ---------------------------------------------------------------------------
+
+LOCATIONS_DATA_DIR = Path(__file__).resolve().parent / "data"
+
+_ph_provinces_cache = None
+_ph_cities_cache = None
+_ph_barangays_cache = None
+
+
+def _load_location_json(filename):
+    with open(LOCATIONS_DATA_DIR / filename, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def _get_ph_provinces():
+    global _ph_provinces_cache
+    if _ph_provinces_cache is None:
+        _ph_provinces_cache = _load_location_json("ph_provinces.json")
+    return _ph_provinces_cache
+
+
+def _get_ph_cities():
+    global _ph_cities_cache
+    if _ph_cities_cache is None:
+        _ph_cities_cache = _load_location_json("ph_cities.json")
+    return _ph_cities_cache
+
+
+def _get_ph_barangays():
+    global _ph_barangays_cache
+    if _ph_barangays_cache is None:
+        _ph_barangays_cache = _load_location_json("ph_barangays.json")
+    return _ph_barangays_cache
+
+
+@main.route("/api/locations/provinces")
+@login_required
+def api_locations_provinces():
+    provinces = sorted(_get_ph_provinces(), key=lambda p: p["name"])
+    return jsonify(provinces)
+
+
+@main.route("/api/locations/cities")
+@login_required
+def api_locations_cities():
+    province_code = request.args.get("province_code", "")
+    cities = [
+        c for c in _get_ph_cities()
+        if c["province_code"] == province_code
+    ]
+    cities.sort(key=lambda c: c["name"])
+    return jsonify(cities)
+
+
+@main.route("/api/locations/barangays")
+@login_required
+def api_locations_barangays():
+    city_code = request.args.get("city_code", "")
+    barangays = [
+        b for b in _get_ph_barangays()
+        if b["city_code"] == city_code
+    ]
+    barangays.sort(key=lambda b: b["name"])
+    return jsonify(barangays)
 
 
 @main.app_context_processor
@@ -381,3 +453,180 @@ def delete_technology_transfer(technology_id):
     )
 
     return redirect(url_for("main.TechnologyTransfer"))
+
+
+# ---------------------------------------------------------------------------
+# Extension Programs
+#
+# Access rules:
+#   - Faculty Extensionist: full manage access (add/edit/delete), but only
+#     over the programs they themselves created.
+#   - Extension Coordinator: view-only access to every faculty's programs,
+#     and can see which Faculty Extensionist inputted each record.
+#   - Any other role: no access.
+# ---------------------------------------------------------------------------
+
+@main.route("/programs")
+@login_required
+def Program():
+
+    if current_user.role not in ("FACULTY", "COORDINATOR"):
+        flash("You are not authorized to view extension programs.", "danger")
+        return redirect(url_for("main.index"))
+
+    if current_user.role == "FACULTY":
+        # Faculty only manage the programs they personally inputted.
+        programs = (
+            Program_model.query
+            .filter_by(user_id=current_user.id)
+            .order_by(Program_model.start_date.desc())
+            .all()
+        )
+        base_template = "base_faculty.html"
+    else:
+        # Coordinator can view every program, across all faculty.
+        programs = (
+            Program_model.query
+            .order_by(Program_model.start_date.desc())
+            .all()
+        )
+        base_template = "base_coordinator.html"
+
+    return render_template(
+        "Program.html",
+        programs=programs,
+        base_template=base_template,
+        can_manage=(current_user.role == "FACULTY")
+    )
+
+
+@main.route("/programs/add", methods=["GET", "POST"])
+@login_required
+def Program_add():
+
+    if current_user.role != "FACULTY":
+        flash(
+            "Only the Faculty Extensionist can manage extension programs.",
+            "danger"
+        )
+        return redirect(url_for("main.Program"))
+
+    if request.method == "POST":
+
+        program_name = request.form.get("program_name")
+        start_date = request.form.get("start_date")
+        end_date = request.form.get("end_date")
+        province = request.form.get("province")
+        city = request.form.get("city")
+        barangay = request.form.get("barangay")
+        status = request.form.get("status")
+        description = request.form.get("description")
+
+        if status not in VALID_PROGRAM_STATUSES:
+            flash("Please select a valid status.", "danger")
+            return redirect(url_for("main.Program_add"))
+
+        if not (province and city and barangay):
+            flash("Please select a complete location (Province, City/Municipality, and Barangay).", "danger")
+            return redirect(url_for("main.Program_add"))
+
+        program = Program_model(
+            user_id=current_user.id,
+            program_name=program_name,
+            start_date=datetime.strptime(start_date, "%Y-%m-%d").date(),
+            end_date=datetime.strptime(end_date, "%Y-%m-%d").date(),
+            province=province,
+            city=city,
+            barangay=barangay,
+            status=status,
+            description=description
+        )
+
+        db.session.add(program)
+        db.session.commit()
+
+        flash("Extension program added successfully.", "success")
+
+        return redirect(url_for("main.Program"))
+
+    return render_template("Program_add.html")
+
+
+@main.route("/programs/edit/<int:program_id>", methods=["GET", "POST"])
+@login_required
+def Program_edit(program_id):
+
+    if current_user.role != "FACULTY":
+        flash(
+            "Only the Faculty Extensionist can manage extension programs.",
+            "danger"
+        )
+        return redirect(url_for("main.Program"))
+
+    program = Program_model.query.get_or_404(program_id)
+
+    # A faculty extensionist can only manage programs they inputted.
+    if program.user_id != current_user.id:
+        flash("You can only manage extension programs you created.", "danger")
+        return redirect(url_for("main.Program"))
+
+    if request.method == "POST":
+
+        start_date = request.form.get("start_date")
+        end_date = request.form.get("end_date")
+        status = request.form.get("status")
+
+        if status not in VALID_PROGRAM_STATUSES:
+            flash("Please select a valid status.", "danger")
+            return redirect(url_for("main.Program_edit", program_id=program.program_id))
+
+        province = request.form.get("province")
+        city = request.form.get("city")
+        barangay = request.form.get("barangay")
+
+        if not (province and city and barangay):
+            flash("Please select a complete location (Province, City/Municipality, and Barangay).", "danger")
+            return redirect(url_for("main.Program_edit", program_id=program.program_id))
+
+        program.program_name = request.form.get("program_name")
+        program.start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+        program.end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
+        program.province = province
+        program.city = city
+        program.barangay = barangay
+        program.status = status
+        program.description = request.form.get("description")
+
+        db.session.commit()
+
+        flash("Extension program updated successfully.", "success")
+
+        return redirect(url_for("main.Program"))
+
+    return render_template("Program_edit.html", program=program)
+
+
+@main.route("/programs/delete/<int:program_id>", methods=["POST"])
+@login_required
+def delete_program(program_id):
+
+    if current_user.role != "FACULTY":
+        flash(
+            "Only the Faculty Extensionist can manage extension programs.",
+            "danger"
+        )
+        return redirect(url_for("main.Program"))
+
+    program = Program_model.query.get_or_404(program_id)
+
+    if program.user_id != current_user.id:
+        flash("You can only manage extension programs you created.", "danger")
+        return redirect(url_for("main.Program"))
+
+    db.session.delete(program)
+    db.session.commit()
+
+    flash("Extension program deleted successfully.", "success")
+
+    return redirect(url_for("main.Program"))
+
