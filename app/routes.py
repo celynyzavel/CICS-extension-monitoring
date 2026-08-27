@@ -12,10 +12,6 @@ main = Blueprint("main", __name__)
 
 VALID_PROGRAM_STATUSES = ("Planning", "Ongoing", "Completed", "Cancelled")
 
-# ---------------------------------------------------------------------------
-# Philippine location data (Province -> City/Municipality -> Barangay)
-# Used to power the cascading location selects on the Program forms.
-# ---------------------------------------------------------------------------
 
 LOCATIONS_DATA_DIR = Path(__file__).resolve().parent / "data"
 
