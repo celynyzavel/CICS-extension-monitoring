@@ -5,7 +5,7 @@
 {% block content %}
 
 <div class="row justify-content-center">
-    <div class="col-md-8">
+    <div class="col-md-9">
 
         <div class="card shadow-sm">
 
@@ -18,93 +18,44 @@
                 {% include "partials/_flash_messages.html" %}
 
                 <form method="POST">
-
                     <div class="row">
 
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">System Name</label>
+                            <label class="form-label">
+                                Capstone Title
+                            </label>
+
                             <input
                                 type="text"
-                                name="system_name"
+                                name="capstone_title"
                                 class="form-control"
                                 required
                             >
                         </div>
 
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">System Type</label>
+                            <label class="form-label">
+                                Specialized Track
+                            </label>
 
                             <select
-                                name="system_type"
-                                id="system_type"
+                                name="specialized_track"
+                                id="specialized_track"
                                 class="form-select"
                                 required
                             >
-                                <option value="">Select Type</option>
-                                <option value="Web System">Web System</option>
-                                <option value="Web Application">Web Application</option>
-                                <option value="Desktop Application">Desktop Application</option>
-                                <option value="Mobile Application">Mobile Application</option>
-                                <option value="Other">Other</option>
+                                <option value="">Select Track</option>
+                                <option value="Business Analytics">
+                                    Business Analytics
+                                </option>
+                                <option value="Network Technology">
+                                    Network Technology
+                                </option>
+                                <option value="Service Management">
+                                    Service Management
+                                </option>
                             </select>
                         </div>
-
-                        <div
-                            class="col-md-6 mb-3"
-                            id="otherSystemTypeDiv"
-                            style="display: none;"
-                        >
-                            <label class="form-label">Please Specify</label>
-
-                            <input
-                                type="text"
-                                name="other_system_type"
-                                id="other_system_type"
-                                class="form-control"
-                                placeholder="Please specify the system type"
-                            >
-                        </div>
-
-                    </div>
-
-                    <div class="row">
-
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Program</label>
-
-                            <input
-                                type="text"
-                                name="program"
-                                class="form-control"
-                                required
-                            >
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Deployment Date</label>
-
-                            <input
-                                type="date"
-                                name="deployment_date"
-                                class="form-control"
-                                required
-                            >
-                        </div>
-
-                    </div>
-
-                    <div class="mb-3">
-
-                        <label class="form-label">
-                            Partner Institution
-                        </label>
-
-                        <input
-                            type="text"
-                            name="partner_institution"
-                            class="form-control"
-                            required
-                        >
 
                     </div>
 
@@ -113,16 +64,71 @@
                         <div class="col-md-6 mb-3">
 
                             <label class="form-label">
-                                Users Trained
+                                System Type
+                            </label>
+
+                            <select
+                                name="system_type"
+                                id="system_type"
+                                class="form-select"
+                                required
+                            >
+                                <option value="">Select Type</option>
+                                <option value="Web System">
+                                    Web System
+                                </option>
+                                <option value="Web Application">
+                                    Web Application
+                                </option>
+                                <option value="Desktop Application">
+                                    Desktop Application
+                                </option>
+                                <option value="Mobile Application">
+                                    Mobile Application
+                                </option>
+                                <option value="Other">
+                                    Other
+                                </option>
+                            </select>
+
+                        </div>
+
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="form-label">
+                                Deployment Date
                             </label>
 
                             <input
-                                type="number"
-                                name="user_trained"
+                                type="date"
+                                name="deployment_date"
                                 class="form-control"
-                                min="0"
-                                value="0"
                                 required
+                            >
+
+                        </div>
+
+                    </div>
+
+                    <div
+                        class="row"
+                        id="otherSystemTypeDiv"
+                        style="display: none;"
+                    >
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="form-label">
+                                Please Specify System Type
+                            </label>
+
+                            <input
+                                type="text"
+                                name="other_system_type"
+                                id="other_system_type"
+                                class="form-control"
+                                placeholder="Please specify the system type"
                             >
 
                         </div>
@@ -138,33 +144,165 @@
                             </label>
 
                             <select
-                                name="usage_status"
+                                name="deployment_status"
                                 class="form-select"
                                 required
                             >
-                                <option value="Active">Active</option>
-                                <option value="Inactive">Inactive</option>
+                                <option value="">Select Status</option>
+                                <option value="Active">
+                                    Active
+                                </option>
+                                <option value="Inactive">
+                                    Inactive
+                                </option>
                             </select>
+
+                        </div>
+
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="form-label">
+                                Partner Institution
+                            </label>
+
+                            <input
+                                type="text"
+                                name="partner_institution"
+                                class="form-control"
+                                required
+                            >
 
                         </div>
 
                     </div>
 
-                    <div class="mb-4">
 
-                        <label class="form-label">
-                            Description
-                        </label>
+                    <hr>
 
-                        <textarea
-                            name="description"
-                            class="form-control"
-                            rows="3"
-                        ></textarea>
+                    <h5 class="mb-3">
+                        Beneficiary Information
+                    </h5>
+
+                    <div class="row">
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="form-label">
+                                Beneficiary Name
+                            </label>
+
+                            <input
+                                type="text"
+                                name="beneficiary_name"
+                                class="form-control"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="form-label">
+                                Beneficiary Position
+                            </label>
+
+                            <input
+                                type="text"
+                                name="beneficiary_position"
+                                class="form-control"
+                                required
+                            >
+
+                        </div>
 
                     </div>
 
-                    <div class="d-flex gap-2">
+                    <div class="row">
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="form-label">
+                                Beneficiary Phone Number
+                            </label>
+
+                            <input
+                                type="tel"
+                                name="beneficiary_phone_number"
+                                class="form-control"
+                                placeholder="e.g. 09123456789"
+                                required
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <hr>
+
+                    <h5 class="mb-3">
+                        Users Trained
+                    </h5>
+
+                    <div class="row">
+
+                        <div class="col-md-4 mb-3">
+
+                            <label class="form-label">
+                                Number of Female Users Trained
+                            </label>
+
+                            <input
+                                type="number"
+                                name="female_users_trained"
+                                id="female_users_trained"
+                                class="form-control"
+                                min="0"
+                                value="0"
+                                required
+                            >
+
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+
+                            <label class="form-label">
+                                Number of Male Users Trained
+                            </label>
+
+                            <input
+                                type="number"
+                                name="male_users_trained"
+                                id="male_users_trained"
+                                class="form-control"
+                                min="0"
+                                value="0"
+                                required
+                            >
+
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+
+                            <label class="form-label">
+                                Total Users Trained
+                            </label>
+
+                            <input
+                                type="number"
+                                id="total_users_trained"
+                                class="form-control"
+                                value="0"
+                                readonly
+                            >
+
+                        </div>
+
+                    </div>
+
+                    <div class="d-flex gap-2 mt-3">
 
                         <a
                             href="{{ url_for('main.TechnologyTransfer') }}"
@@ -195,24 +333,65 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
 
-        const systemType = document.getElementById('system_type');
-        const otherDiv = document.getElementById('otherSystemTypeDiv');
-        const otherInput = document.getElementById('other_system_type');
+        const systemType =
+            document.getElementById('system_type');
+
+        const otherDiv =
+            document.getElementById('otherSystemTypeDiv');
+
+        const otherInput =
+            document.getElementById('other_system_type');
+
 
         systemType.addEventListener('change', function () {
 
             if (this.value === 'Other') {
 
-                otherDiv.style.display = 'block';
+                otherDiv.style.display = 'flex';
                 otherInput.required = true;
 
             } else {
+
                 otherDiv.style.display = 'none';
                 otherInput.required = false;
                 otherInput.value = '';
+
             }
 
         });
+
+        const femaleInput =
+            document.getElementById('female_users_trained');
+
+        const maleInput =
+            document.getElementById('male_users_trained');
+
+        const totalInput =
+            document.getElementById('total_users_trained');
+
+
+        function calculateTotal() {
+
+            const female =
+                parseInt(femaleInput.value) || 0;
+
+            const male =
+                parseInt(maleInput.value) || 0;
+
+            totalInput.value = female + male;
+
+        }
+        femaleInput.addEventListener(
+            'input',
+            calculateTotal
+        );
+
+        maleInput.addEventListener(
+            'input',
+            calculateTotal
+        );
+
+        calculateTotal();
 
     });
 </script>

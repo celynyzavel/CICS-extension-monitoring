@@ -1,0 +1,24 @@
+{% extends "base_faculty.html" %}
+{% block title %}Edit Activity{% endblock %}
+{% block content %}
+<div class="cics-page">
+<div class="cics-page-head"><div><h2>Add Activity</h2><p>Update the activity and participation details.</p></div></div>
+{% include "partials/_flash_messages.html" %}
+<div class="cics-form-card">
+<form method="POST">
+<div class="cics-form-grid">
+<div class="cics-form-group full"><label>Activity Name</label><input class="form-control" name="activity_name" value="{{ activity.activity_name }}" required></div>
+<div class="cics-form-group"><label>Activity Type</label><input class="form-control" name="activity_type" value="{{ activity.activity_type }}" required></div>
+<div class="cics-form-group"><label>Program / Project</label><select class="form-select" name="parent" required><option value="">Select program or project</option>{% if programs %}<optgroup label="Programs">{% for p in programs %}<option value="program:{{ p.program_id }}" {% if parent_value == "program:" ~ p.program_id|string %}selected{% endif %}>{{ p.program_name }}</option>{% endfor %}</optgroup>{% endif %}{% if projects %}<optgroup label="Projects">{% for p in projects %}<option value="project:{{ p.project_id }}" {% if parent_value == "project:" ~ p.project_id|string %}selected{% endif %}>{{ p.project_name }}</option>{% endfor %}</optgroup>{% endif %}</select></div>
+<div class="cics-form-group"><label>Start Date</label><input class="form-control" type="date" name="start_date" value="{{ activity.start_date.isoformat() }}" required></div>
+<div class="cics-form-group"><label>End Date</label><input class="form-control" type="date" name="end_date" value="{{ activity.end_date.isoformat() }}" required></div>
+<div class="cics-form-group"><label>Status</label><select class="form-select" name="status" required><option {% if activity.status == "Pending" %}selected{% endif %}>Pending</option><option {% if activity.status == "Ongoing" %}selected{% endif %}>Ongoing</option><option {% if activity.status == "Completed" %}selected{% endif %}>Completed</option><option {% if activity.status == "Cancelled" %}selected{% endif %}>Cancelled</option></select></div>
+<div class="cics-form-group"><label>Participants Reached</label><input class="form-control" type="number" min="0" name="participants_attended" value="{{ activity.participants_attended }}" required></div>
+<div class="cics-form-group"><label>Participant Target</label><input class="form-control" type="number" min="0" name="participants_target" value="{{ activity.participants_target }}" required></div>
+<div class="cics-form-group full"><label>Description</label><textarea class="form-control" name="description" rows="4" {{ activity.description or "" }}></textarea></div>
+</div>
+<div class="cics-form-actions"><a class="btn btn-outline-secondary" href="{{ url_for('main.Activity') }}">Cancel</a><button class="btn btn-primary" type="submit">Save Changes</button></div>
+</form>
+</div>
+</div>
+{% endblock %}

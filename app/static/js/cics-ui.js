@@ -4,17 +4,10 @@
 (function () {
   const sidebar = document.getElementById('cicsSidebar');
   const menu = document.getElementById('menuToggleCics');
-  const user = document.getElementById('userChipCics');
 
   if (menu && sidebar) {
     menu.addEventListener('click', function () {
       sidebar.classList.toggle('open');
-    });
-  }
-
-  if (user) {
-    user.addEventListener('click', function () {
-      window.location.href = '/logout';
     });
   }
 

@@ -1,6 +1,6 @@
 {% extends base_template %}
 
-{% block title %}My Programs{% endblock %}
+{% block title %}My Projects{% endblock %}
 
 {% block content %}
 
@@ -8,13 +8,13 @@
     <div class="cics-page-head">
 
         <div>
-            <h2>My Programs</h2>
+            <h2>My Projects</h2>
 
             <p>
                 {% if can_manage %}
-                    List of all extension programs you are involved in.
+                    List of all extension projects you are involved in.
                 {% else %}
-                    View all extension programs submitted by Faculty Extensionists.
+                    View all extension projects submitted by Faculty Extensionists.
                 {% endif %}
             </p>
         </div>
@@ -22,10 +22,10 @@
         {% if can_manage %}
         <a
             class="cics-primary-btn"
-            href="{{ url_for('main.Program_add') }}"
+            href="{{ url_for('main.Project_add') }}"
         >
             <i class="bi bi-plus-lg"></i>
-            Add Program
+            Add Project
         </a>
         {% endif %}
 
@@ -38,10 +38,10 @@
             <i class="bi bi-search"></i>
 
             <input
-                id="programSearch"
+                id="projectSearch"
                 type="search"
-                placeholder="Search programs..."
-                aria-label="Search programs"
+                placeholder="Search projects..."
+                aria-label="Search projects"
             >
 
         </div>
@@ -54,12 +54,13 @@
 
             <table
                 class="cics-data-table"
-                id="programTable"
+                id="projectTable"
             >
                 <thead>
                     <tr>
-                        <th>Program Name</th>
+                        <th>Project Name</th>
                         <th>Description</th>
+                        <th>Involvement</th>
                         <th>Start Date</th>
                         <th>End Date</th>
                         <th>Location</th>
@@ -74,64 +75,178 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for program in programs %}
+                    {% for project in projects %}
 
                     <tr
-                        data-search="{{ (program.program_name ~ ' ' ~ (program.description or ''))|lower }}"
+                        data-search="{{ (
+                            project.project_name
+                            ~ ' '
+                            ~ (project.description or '')
+                        )|lower }}"
                     >
+
                         <td>
+
                             <div class="pp-name">
-                                <div class="pp-ic pp-program"><i class="bi bi-laptop"></i></div>
+
+                                <div class="pp-ic pp-project">
+
+                                    <i class="bi bi-globe2"></i>
+
+                                </div>
+
 
                                 <div>
-                                    <strong>{{ program.program_name }}</strong>
 
-                                    <span>{{ (program.description or 'Extension program')|truncate(65) }}</span>
+                                    <strong>
+                                        {{ project.project_name }}
+                                    </strong>
+
+                                    <span>
+
+                                        {{
+                                            (
+                                                project.description
+                                                or
+                                                'Extension project'
+                                            )|truncate(65)
+                                        }}
+
+                                    </span>
+
                                 </div>
+
                             </div>
+
                         </td>
 
-                        <td><span class="badge-description">{{ (program.description or '—')|truncate(80) }}</span></td>
-
-                        <td>{{ program.start_date.strftime('%b %d, %Y') }}</td>
-                        <td>{{ program.end_date.strftime('%b %d, %Y') }}</td>
-                        <td>{{ program.barangay }} {{ program.city }} {{ program.province }}</td>
                         <td>
-                            <span class="cics-status {{ program.status|lower }}">
-                                {{ program.status }}
-                            </span>
+
+                            {{
+                                (
+                                    project.description
+                                    or
+                                    '—'
+                                )|truncate(80)
+                            }}
+
                         </td>
 
+                        <td>
+
+                            <span
+                                class="badge-role {{
+                                    'lead'
+                                    if project.involvement == 'Project Leader'
+                                    else
+                                    'co'
+                                    if project.involvement == 'Co-Implementer'
+                                    else
+                                    'support'
+                                }}"
+                            >
+
+                                {{ project.involvement }}
+
+                            </span>
+
+                        </td>
+
+                        <td>
+
+                            {{ project.start_date.strftime('%b %d, %Y') }}
+
+                        </td>
+
+
+                        <!-- END DATE -->
+                        <td>
+
+                            {{ project.end_date.strftime('%b %d, %Y') }}
+
+                        </td>
+
+                        <td>
+                            {{ project.barangay }}
+                            {{ project.city }}
+                            {{ project.province }}
+                        </td>
+
+
+                        <!-- STATUS -->
+                        <td>
+
+                            <span class="cics-status {{ project.status|lower }}">
+
+                                {{ project.status }}
+
+                            </span>
+
+                        </td>
+
+
+                        <!-- =========================================
+                             ADDED BY
+                             Coordinator View
+                        ========================================== -->
                         {% if not can_manage %}
-                        <td>{{ program.user.first_name }} {{ program.user.last_name }}</td>
+
+                        <td>
+
+                            {{ project.user.first_name }}
+                            {{ project.user.last_name }}
+
+                        </td>
+
                         {% endif %}
 
+
+                        <!-- =========================================
+                             ACTIONS
+                             Faculty View
+                        ========================================== -->
                         {% if can_manage %}
+
                         <td>
+
                             <div class="cics-row-actions">
+
+
+                                <!-- EDIT -->
                                 <a
                                     href="{{ url_for(
-                                        'main.Program_edit',
-                                        program_id=program.program_id
+                                        'main.Project_edit',
+                                        project_id=project.project_id
                                     ) }}"
                                     title="Edit"
                                 >
+
                                     <i class="bi bi-pencil-square"></i>
+
                                 </a>
 
+
+                                <!-- DELETE -->
                                 <button
                                     type="button"
                                     title="Delete"
                                     data-bs-toggle="modal"
-                                    data-bs-target="#deleteProgram{{ program.program_id }}"
+                                    data-bs-target="#deleteProject{{ project.project_id }}"
                                 >
+
                                     <i class="bi bi-three-dots-vertical"></i>
+
                                 </button>
 
                             </div>
+
+
+                            <!-- =====================================
+                                 DELETE PROJECT MODAL
+                            ====================================== -->
                             <div
                                 class="modal fade"
-                                id="deleteProgram{{ program.program_id }}"
+                                id="deleteProject{{ project.project_id }}"
                                 tabindex="-1"
                                 aria-hidden="true"
                             >
@@ -140,10 +255,12 @@
 
                                     <div class="modal-content">
 
+
+                                        <!-- HEADER -->
                                         <div class="modal-header">
 
                                             <h5 class="modal-title">
-                                                Delete Extension Program
+                                                Delete Extension Project
                                             </h5>
 
                                             <button
@@ -155,18 +272,22 @@
 
                                         </div>
 
+
+                                        <!-- BODY -->
                                         <div class="modal-body">
 
                                             Are you sure you want to delete
 
                                             <strong>
-                                                {{ program.program_name }}
+                                                {{ project.project_name }}
                                             </strong>?
 
                                             This action cannot be undone.
 
                                         </div>
 
+
+                                        <!-- FOOTER -->
                                         <div class="modal-footer">
 
                                             <button
@@ -181,8 +302,8 @@
                                             <form
                                                 method="POST"
                                                 action="{{ url_for(
-                                                    'main.delete_program',
-                                                    program_id=program.program_id
+                                                    'main.delete_project',
+                                                    project_id=project.project_id
                                                 ) }}"
                                             >
 
@@ -211,30 +332,32 @@
 
                     {% endfor %}
 
+
+
                     <!-- =============================================
                          EMPTY STATE
                     ============================================== -->
                     <tr
-                        id="programEmpty"
-                        class="{% if programs %}d-none{% endif %}"
+                        id="projectEmpty"
+                        class="{% if projects %}d-none{% endif %}"
                     >
 
                         <td colspan="8">
 
                             <div class="cics-empty">
 
-                                <i class="bi bi-laptop"></i>
+                                <i class="bi bi-folder2-open"></i>
 
                                 <strong>
-                                    No programs yet
+                                    No projects yet
                                 </strong>
 
                                 <span>
 
                                     {% if can_manage %}
 
-                                        Add your first program to start
-                                        tracking your extension work.
+                                        Add your first project
+                                        to start tracking your extension work.
 
                                     {% else %}
 
@@ -263,9 +386,9 @@
         ====================================================== -->
         <div class="cics-table-foot">
 
-            <span id="programCount">
+            <span id="projectCount">
 
-                Showing {{ programs|length }} entries
+                Showing {{ projects|length }} entries
 
             </span>
 
@@ -289,20 +412,20 @@
 (function () {
 
     const search =
-        document.getElementById('programSearch');
+        document.getElementById('projectSearch');
 
     const rows =
         Array.from(
             document.querySelectorAll(
-                '#programTable tbody tr[data-search]'
+                '#projectTable tbody tr[data-search]'
             )
         );
 
     const count =
-        document.getElementById('programCount');
+        document.getElementById('projectCount');
 
     const empty =
-        document.getElementById('programEmpty');
+        document.getElementById('projectEmpty');
 
 
     /*

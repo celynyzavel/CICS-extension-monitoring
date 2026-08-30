@@ -3,8 +3,8 @@
 {% block sidebar_nav %}
 <a class="sidebar-link {% if request.endpoint == 'main.index' %}active{% endif %}" href="{{ url_for('main.index') }}"><i class="bi bi-grid-1x2"></i> Dashboard</a>
 <a class="sidebar-link {% if request.endpoint in ['main.Program','main.Program_add','main.Program_edit'] %}active{% endif %}" href="{{ url_for('main.Program') }}"><i class="bi bi-arrow-left-right"></i> Programs</a>
-<a class="sidebar-link" href="#"><i class="bi bi-kanban"></i> Projects</a>
-<a class="sidebar-link" href="#"><i class="bi bi-calendar-event"></i> Activities</a>
+<a class="sidebar-link {% if request.endpoint in ['main.Project','main.Project_add','main.Project_edit'] %}active{% endif %}" href="{{ url_for('main.Project') }}"><i class="bi bi-kanban"></i> Projects</a>
+<a class="sidebar-link {% if request.endpoint == 'main.Activity' %}active{% endif %}" href="{{ url_for('main.Activity') }}"><i class="bi bi-calendar-event"></i> Activities</a>
 <a class="sidebar-link" href="#"><i class="bi bi-graph-up"></i> Training Impact Metrics</a>
 <a class="sidebar-link {% if request.endpoint in ['main.TechnologyTransfer','main.TechnologyTransfer_add','main.TechnologyTransfer_edit'] %}active{% endif %}" href="{{ url_for('main.TechnologyTransfer') }}"><i class="bi bi-arrow-left-right"></i> Technology Transfer</a>
 <a class="sidebar-link" href="#"><i class="bi bi-wallet2"></i> Budget Utilization</a>

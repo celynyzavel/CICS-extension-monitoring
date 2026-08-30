@@ -41,7 +41,7 @@
                     <h1 class="mb-0" style="font-size:16px;color:var(--ink-900);">CICS Extension System</h1>
                 </div>
                 <div class="d-flex align-items-center gap-3 ms-auto">
-                    {% if flagged_technologies is defined %}
+                    {% if current_user.is_authenticated and current_user.role == 'COORDINATOR' %}
                     <div class="dropdown">
                         <a href="#" class="position-relative text-decoration-none" data-bs-toggle="dropdown" aria-expanded="false" title="Notifications">
                             <span style="width:38px;height:38px;border-radius:9px;background:var(--bg);display:flex;align-items:center;justify-content:center;color:var(--ink-700);">🔔</span>
@@ -58,13 +58,20 @@
                         </div>
                     </div>
                     {% endif %}
-                    <div class="user-chip-cics d-flex align-items-center gap-2" id="userChipCics" title="Logout" style="cursor:pointer;">
-                        <div class="avatar-circle">{{ current_user.first_name[0] }}{{ current_user.last_name[0] }}</div>
-                        <div class="d-none d-md-block">
-                            <strong style="display:block;font-size:13.5px;color:var(--ink-900);line-height:1.3;">{{ current_user.first_name }} {{ current_user.last_name }}</strong>
-                            <span style="display:block;font-size:11.5px;color:var(--ink-500);">{% block role_label %}{% endblock %}</span>
+                    <div class="dropdown">
+                        <a href="#" class="user-chip-cics d-flex align-items-center gap-2 text-decoration-none" id="userChipCics" data-bs-toggle="dropdown" aria-expanded="false">
+                            <div class="avatar-circle">{{ current_user.first_name[0] }}{{ current_user.last_name[0] }}</div>
+                            <div class="d-none d-md-block">
+                                <strong style="display:block;font-size:13.5px;color:var(--ink-900);line-height:1.3;">{{ current_user.first_name }} {{ current_user.last_name }}</strong>
+                                <span style="display:block;font-size:11.5px;color:var(--ink-500);">{% block role_label %}{% endblock %}</span>
+                            </div>
+                            <span style="color:var(--ink-400);font-size:11px;">▼</span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end" style="min-width:200px;">
+                            <span class="dropdown-item-text small text-muted">{{ current_user.first_name }} {{ current_user.last_name }}</span>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item text-danger" href="{{ url_for('main.logout') }}"><i class="bi bi-box-arrow-right"></i> Logout</a>
                         </div>
-                        <span style="color:var(--ink-400);font-size:11px;">▼</span>
                     </div>
                 </div>
             </div>

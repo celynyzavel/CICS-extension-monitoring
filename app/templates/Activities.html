@@ -1,0 +1,86 @@
+{% extends base_template %}
+{% block title %}Activities{% endblock %}
+{% block content %}
+<div class="cics-page">
+    <div class="cics-page-head">
+        <div><h2>Activities</h2><p>{% if can_manage %}View and manage all your extension activities.{% else %}View all extension activities submitted by Faculty Extensionists.{% endif %}</p></div>
+        {% if can_manage %}
+        <a href="{{ url_for('main.Activity_add') }}" class="cics-primary-btn"><i class="bi bi-plus-lg"></i> Add Activity</a>
+        {% endif %}
+    </div>
+    {% include "partials/_flash_messages.html" %}
+
+    <form class="activity-filter-card" method="GET">
+        <div class="activity-filter-search">
+            <label>Search Activity</label>
+            <div class="cics-search"><i class="bi bi-search"></i><input name="search" value="{{ search }}" placeholder="Search by activity name..."></div>
+        </div>
+        <div><label>Program / Project</label><select class="form-select" name="parent">
+            <option value="all" {% if parent == 'all' %}selected{% endif %}>All</option>
+            {% if programs %}<optgroup label="Programs">{% for p in programs %}<option value="program:{{ p.program_id }}" {% if parent == 'program:' ~ p.program_id|string %}selected{% endif %}>{{ p.program_name }}</option>{% endfor %}</optgroup>{% endif %}
+            {% if projects %}<optgroup label="Projects">{% for p in projects %}<option value="project:{{ p.project_id }}" {% if parent == 'project:' ~ p.project_id|string %}selected{% endif %}>{{ p.project_name }}</option>{% endfor %}</optgroup>{% endif %}
+        </select></div>
+        <div><label>Status</label><select class="form-select" name="status">
+            <option value="all" {% if status == 'all' %}selected{% endif %}>All Status</option>
+            {% for s in ['Completed','Ongoing','Pending','Cancelled'] %}<option value="{{ s }}" {% if status == s %}selected{% endif %}>{{ s }}</option>{% endfor %}
+        </select></div>
+        <div><label>Date Range</label><select class="form-select" name="date_range">
+            <option value="all" {% if date_range == 'all' %}selected{% endif %}>All Time</option>
+            <option value="month" {% if date_range == 'month' %}selected{% endif %}>Current</option>
+            <option value="upcoming" {% if date_range == 'upcoming' %}selected{% endif %}>Upcoming</option>
+            <option value="past" {% if date_range == 'past' %}selected{% endif %}>Past</option>
+        </select></div>
+        <button class="btn btn-primary activity-filter-submit" type="submit"><i class="bi bi-funnel"></i> Apply Filters</button>
+    </form>
+
+    <div class="stat-grid activity-stat-grid">
+        <div class="card stat-card"><div class="stat-top"><div class="stat-ic blue"><i class="bi bi-calendar-event"></i></div><div><div class="stat-num">{{ stats.total }}</div><div class="stat-label">Total Activities</div></div></div><div class="stat-sub">{% if can_manage %}All your activities{% else %}All submitted activities{% endif %}</div></div>
+        <div class="card stat-card"><div class="stat-top"><div class="stat-ic green"><i class="bi bi-check-circle"></i></div><div><div class="stat-num">{{ stats.completed }}</div><div class="stat-label">Completed</div></div></div><div class="stat-sub">Finished activities</div></div>
+        <div class="card stat-card"><div class="stat-top"><div class="stat-ic orange"><i class="bi bi-clock"></i></div><div><div class="stat-num">{{ stats.ongoing }}</div><div class="stat-label">Ongoing</div></div></div><div class="stat-sub">Currently in progress</div></div>
+        <div class="card stat-card"><div class="stat-top"><div class="stat-ic purple"><i class="bi bi-hourglass-split"></i></div><div><div class="stat-num">{{ stats.pending }}</div><div class="stat-label">Pending</div></div></div><div class="stat-sub">Not yet started</div></div>
+    </div>
+
+    <div class="cics-data-card table-card">
+        <div class="cics-section-head"><strong>Activities List</strong><span>Sort by: <b>Latest Updated</b></span></div>
+        <div class="cics-table-wrap">
+            <table class="cics-data-table activity-table">
+                <thead><tr><th>Activity Name</th><th>Program / Project</th><th>Date</th><th>Status</th><th>Participants</th><th>Last Updated</th>{% if not can_manage %}<th>Added By</th>{% endif %}{% if can_manage %}<th>Actions</th>{% endif %}</tr></thead>
+                <tbody>
+                {% for activity in activities %}
+                    <tr>
+                        <td><div class="pp-name"><div class="pp-ic {{ 'pp-program' if activity.program else 'pp-project' }}"><i class="bi bi-{{ 'journal-text' if activity.program else 'people' }}"></i></div><div><strong>{{ activity.activity_name }}</strong><span>{{ activity.activity_type }}</span></div></div></td>
+                        <td>{% if activity.program %}<strong>{{ activity.program.program_name }}</strong><span class="table-sub">Program</span>{% elif activity.project %}<strong>{{ activity.project.project_name }}</strong><span class="table-sub">Project</span>{% else %}—{% endif %}</td>
+                        <td><i class="bi bi-calendar3"></i> {{ activity.date_display }}</td>
+                        <td><span class="cics-status {{ activity.status|lower }}">{{ activity.status }}</span></td>
+                        <td>{{ activity.participants_attended }} / {{ activity.participants_target }}</td>
+                        <td>{{ activity.updated_at.strftime('%b %d, %Y') }}<span class="table-sub">{{ activity.updated_at.strftime('%-I:%M %p') if false else activity.updated_at.strftime('%I:%M %p') }}</span></td>
+                        {% if not can_manage %}
+                        <td>{{ activity.user.first_name }} {{ activity.user.last_name }}</td>
+                        {% endif %}
+                        {% if can_manage %}
+                        <td><div class="cics-row-actions"><a href="{{ url_for('main.Activity_edit', activity_id=activity.activity_id) }}" title="Edit"><i class="bi bi-eye"></i></a><button type="button" data-bs-toggle="modal" data-bs-target="#deleteActivity{{ activity.activity_id }}" title="More"><i class="bi bi-three-dots-vertical"></i></button></div>
+                            <div class="modal fade" id="deleteActivity{{ activity.activity_id }}" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Delete Activity</h5><button class="btn-close" type="button" data-bs-dismiss="modal"></button></div><div class="modal-body">Are you sure you want to delete <strong>{{ activity.activity_name }}</strong>?</div><div class="modal-footer"><button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Cancel</button><form method="POST" action="{{ url_for('main.delete_activity', activity_id=activity.activity_id) }}"><button class="btn btn-danger" type="submit">Delete</button></form></div></div></div></div>
+                        </td>
+                        {% endif %}
+                    </tr>
+                {% else %}
+                    <tr><td colspan="7"><div class="cics-empty"><i class="bi bi-calendar-x"></i><strong>No activities found</strong>{% if can_manage %}<span>Add an activity or adjust your filters.</span><a href="{{ url_for('main.Activity_add') }}" class="btn btn-primary">Add Activity</a>{% else %}<span>No records are available yet.</span>{% endif %}</div></td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="cics-table-foot"><span>Showing {{ activities|length }} activit{{ 'y' if activities|length == 1 else 'ies' }}</span></div>
+    </div>
+
+    <div class="activity-bottom-grid">
+        <div class="cics-data-card"><div class="cics-section-head"><strong>Activity Status Overview</strong></div>
+            <div class="activity-overview"><div class="donut" style="--done: {{ (stats.completed / stats.total * 100) if stats.total else 0 }}%; --ongoing: {{ (stats.ongoing / stats.total * 100) if stats.total else 0 }}%;"></div><div class="overview-legend"><div><span class="legend-dot done"></span>Completed <b>{{ stats.completed }}</b></div><div><span class="legend-dot ongoing"></span>Ongoing <b>{{ stats.ongoing }}</b></div><div><span class="legend-dot pending"></span>Pending <b>{{ stats.pending }}</b></div></div></div>
+        </div>
+        <div class="cics-data-card"><div class="cics-section-head"><strong>Quick Stats</strong></div>
+            <div class="quick-stat-row"><span><i class="bi bi-people"></i> Total Participants Reached</span><b>{{ activities|sum(attribute='participants_attended') }}</b></div>
+            <div class="quick-stat-row"><span><i class="bi bi-calendar-check"></i> Activities This Period</span><b>{{ activities|length }}</b></div>
+        </div>
+    </div>
+    <div class="cics-info-note"><i class="bi bi-info-circle"></i> Keep your activities updated to ensure accurate reporting and monitoring.</div>
+</div>
+{% endblock %}

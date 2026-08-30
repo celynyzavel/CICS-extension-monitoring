@@ -1,0 +1,29 @@
+{% extends "base_faculty.html" %}
+{% block title %}Edit Extension Project{% endblock %}
+{% block content %}
+<div class="cics-page">
+    <div class="cics-page-head"><div><h2>Edit Extension Project</h2><p>Update the project details and involvement.</p></div></div>
+    {% include "partials/_flash_messages.html" %}
+    <div class="cics-form-card">
+        <form method="POST">
+            <div class="cics-form-grid">
+                <div class="cics-form-group full"><label>Project Name</label><input class="form-control" name="project_name" value="{{ project.project_name }}" required></div>
+                <div class="cics-form-group"><label>Parent Program <span class="optional">(optional)</span></label>
+                    <select class="form-select" name="program_id"><option value="">No parent program</option>
+                    {% for program in programs %}<option value="{{ program.program_id }}" {% if project.program_id == program.program_id %}selected{% endif %}>{{ program.program_name }}</option>{% endfor %}</select>
+                </div>
+                <div class="cics-form-group"><label>Involvement</label>
+                    <select class="form-select" name="involvement">{% for value in ['Project Leader','Co-Implementer','Support Staff'] %}<option value="{{ value }}" {% if project.involvement == value %}selected{% endif %}>{{ value }}</option>{% endfor %}</select>
+                </div>
+                <div class="cics-form-group"><label>Start Date</label><input class="form-control" type="date" name="start_date" value="{{ project.start_date.isoformat() }}" required></div>
+                <div class="cics-form-group"><label>End Date</label><input class="form-control" type="date" name="end_date" value="{{ project.end_date.isoformat() }}" required></div>
+                <div class="cics-form-group"><label>Status</label>
+                    <select class="form-select" name="status">{% for value in ['Planning','Ongoing','Completed','Cancelled'] %}<option value="{{ value }}" {% if project.status == value %}selected{% endif %}>{{ value }}</option>{% endfor %}</select>
+                </div>
+                <div class="cics-form-group full"><label>Description</label><textarea class="form-control" name="description" rows="4">{{ project.description or '' }}</textarea></div>
+            </div>
+            <div class="cics-form-actions"><a class="btn btn-outline-secondary" href="{{ url_for('main.Project') }}">Cancel</a><button class="btn btn-primary" type="submit">Save Changes</button></div>
+        </form>
+    </div>
+</div>
+{% endblock %}

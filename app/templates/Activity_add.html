@@ -1,0 +1,24 @@
+{% extends "base_faculty.html" %}
+{% block title %}Add Activity{% endblock %}
+{% block content %}
+<div class="cics-page">
+<div class="cics-page-head"><div><h2>Add Activity</h2><p>Record an extension activity and its participation details.</p></div></div>
+{% include "partials/_flash_messages.html" %}
+<div class="cics-form-card">
+<form method="POST">
+<div class="cics-form-grid">
+<div class="cics-form-group full"><label>Activity Name</label><input class="form-control" name="activity_name" placeholder="e.g., ICT Training for Senior Citizens" required></div>
+<div class="cics-form-group"><label>Activity Type</label><input class="form-control" name="activity_type" placeholder="e.g., Computer Literacy Training" required></div>
+<div class="cics-form-group"><label>Program / Project</label><select class="form-select" name="parent" required><option value="">Select program or project</option>{% if programs %}<optgroup label="Programs">{% for p in programs %}<option value="program:{{ p.program_id }}">{{ p.program_name }}</option>{% endfor %}</optgroup>{% endif %}{% if projects %}<optgroup label="Projects">{% for p in projects %}<option value="project:{{ p.project_id }}">{{ p.project_name }}</option>{% endfor %}</optgroup>{% endif %}</select></div>
+<div class="cics-form-group"><label>Start Date</label><input class="form-control" type="date" name="start_date" required></div>
+<div class="cics-form-group"><label>End Date</label><input class="form-control" type="date" name="end_date" required></div>
+<div class="cics-form-group"><label>Status</label><select class="form-select" name="status" required><option>Pending</option><option>Ongoing</option><option>Completed</option><option>Cancelled</option></select></div>
+<div class="cics-form-group"><label>Participants Reached</label><input class="form-control" type="number" min="0" name="participants_attended" value="0" required></div>
+<div class="cics-form-group"><label>Participant Target</label><input class="form-control" type="number" min="0" name="participants_target" value="0" required></div>
+<div class="cics-form-group full"><label>Description</label><textarea class="form-control" name="description" rows="4" placeholder="Brief description of the activity..."></textarea></div>
+</div>
+<div class="cics-form-actions"><a class="btn btn-outline-secondary" href="{{ url_for('main.Activity') }}">Cancel</a><button class="btn btn-primary" type="submit">Save Activity</button></div>
+</form>
+</div>
+</div>
+{% endblock %}

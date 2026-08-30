@@ -1,0 +1,35 @@
+{% extends "base_faculty.html" %}
+{% block title %}Add Extension Project{% endblock %}
+{% block content %}
+<div class="cics-page">
+    <div class="cics-page-head"><div><h2>Add Extension Project</h2><p>Record a project you are involved in.</p></div></div>
+    {% include "partials/_flash_messages.html" %}
+    <div class="cics-form-card">
+        <form method="POST">
+            <div class="cics-form-grid">
+                <div class="cics-form-group full"><label>Project Name</label><input class="form-control" name="project_name" required></div>
+                <div class="cics-form-group">
+                    <label>Parent Program <span class="optional">(optional)</span></label>
+                    <select class="form-select" name="program_id">
+                        <option value="">No parent program</option>
+                        {% for program in programs %}<option value="{{ program.program_id }}">{{ program.program_name }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="cics-form-group">
+                    <label>Involvement</label>
+                    <select class="form-select" name="involvement" required>
+                        <option>Project Leader</option><option>Co-Implementer</option><option>Support Staff</option>
+                    </select>
+                </div>
+                <div class="cics-form-group"><label>Start Date</label><input class="form-control" type="date" name="start_date" required></div>
+                <div class="cics-form-group"><label>End Date</label><input class="form-control" type="date" name="end_date" required></div>
+                <div class="cics-form-group"><label>Status</label>
+                    <select class="form-select" name="status" required><option>Planning</option><option>Ongoing</option><option>Completed</option><option>Cancelled</option></select>
+                </div>
+                <div class="cics-form-group full"><label>Description</label><textarea class="form-control" name="description" rows="4" placeholder="Briefly describe the project..."></textarea></div>
+            </div>
+            <div class="cics-form-actions"><a class="btn btn-outline-secondary" href="{{ url_for('main.Project') }}">Cancel</a><button class="btn btn-primary" type="submit">Save Extension Project</button></div>
+        </form>
+    </div>
+</div>
+{% endblock %}

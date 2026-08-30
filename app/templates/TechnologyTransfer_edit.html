@@ -5,8 +5,7 @@
 {% block content %}
 
 <div class="row justify-content-center">
-
-    <div class="col-md-8">
+    <div class="col-md-9">
 
         <div class="card shadow-sm">
 
@@ -20,23 +19,52 @@
 
                 <form method="POST">
 
+                    <!-- Capstone Title and Specialized Track -->
                     <div class="row">
 
                         <div class="col-md-6 mb-3">
-
                             <label class="form-label">
-                                System Name
+                                Capstone Title
                             </label>
 
                             <input
                                 type="text"
-                                name="system_name"
+                                name="capstone_title"
                                 class="form-control"
-                                value="{{ technology.system_name }}"
+                                value="{{ technology.capstone_title }}"
                                 required
                             >
-
                         </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">
+                                Specialized Track
+                            </label>
+
+                            <select
+                                name="specialized_track"
+                                id="specialized_track"
+                                class="form-select"
+                                required
+                            >
+                                <option value="">Select Track</option>
+                                <option value="Business Analytics" {% if technology.specialized_track == "Business Analytics" %}selected{% endif %}>
+                                    Business Analytics
+                                </option>
+                                <option value="Network Technology" {% if technology.specialized_track == "Network Technology" %}selected{% endif %}>
+                                    Network Technology
+                                </option>
+                                <option value="Service Management" {% if technology.specialized_track == "Service Management" %}selected{% endif %}>
+                                    Service Management
+                                </option>
+                            </select>
+                        </div>
+
+                    </div>
+
+
+                    <!-- System Type and Deployment Date -->
+                    <div class="row">
 
                         <div class="col-md-6 mb-3">
 
@@ -109,63 +137,6 @@
 
                         </div>
 
-                        <div
-                            class="col-md-6 mb-3"
-                            id="otherSystemTypeDiv"
-                            {% if technology.system_type not in [
-                                "Web System",
-                                "Web Application",
-                                "Desktop Application",
-                                "Mobile Application"
-                            ] %}
-                                style="display: block;"
-                            {% else %}
-                                style="display: none;"
-                            {% endif %}
-                        >
-
-                            <label class="form-label">
-                                Please Specify
-                            </label>
-
-                            <input
-                                type="text"
-                                name="other_system_type"
-                                id="other_system_type"
-                                class="form-control"
-                                placeholder="Please specify the system type"
-                                value="{% if technology.system_type not in ['Web System', 'Web Application', 'Desktop Application', 'Mobile Application'] %}{{ technology.system_type }}{% endif %}"
-                                {% if technology.system_type not in [
-                                    "Web System",
-                                    "Web Application",
-                                    "Desktop Application",
-                                    "Mobile Application"
-                                ] %}
-                                    required
-                                {% endif %}
-                            >
-
-                        </div>
-
-                    </div>
-
-                    <div class="row">
-
-                        <div class="col-md-6 mb-3">
-
-                            <label class="form-label">
-                                Program
-                            </label>
-
-                            <input
-                                type="text"
-                                name="program"
-                                class="form-control"
-                                value="{{ technology.program }}"
-                                required
-                            >
-
-                        </div>
 
                         <div class="col-md-6 mb-3">
 
@@ -185,43 +156,60 @@
 
                     </div>
 
-                    <div class="mb-3">
 
-                        <label class="form-label">
-                            Partner Institution
-                        </label>
+                    <!-- Other System Type -->
+                    <div
+                        class="row"
+                        id="otherSystemTypeDiv"
 
-                        <input
-                            type="text"
-                            name="partner_institution"
-                            class="form-control"
-                            value="{{ technology.partner_institution }}"
-                            required
-                        >
-
-                    </div>
-
-                    <div class="row">
+                        {% if technology.system_type not in [
+                            "Web System",
+                            "Web Application",
+                            "Desktop Application",
+                            "Mobile Application"
+                        ] %}
+                            style="display: flex;"
+                        {% else %}
+                            style="display: none;"
+                        {% endif %}
+                    >
 
                         <div class="col-md-6 mb-3">
 
                             <label class="form-label">
-                                Users Trained
+                                Please Specify System Type
                             </label>
 
                             <input
-                                type="number"
-                                name="user_trained"
+                                type="text"
+                                name="other_system_type"
+                                id="other_system_type"
                                 class="form-control"
-                                min="0"
-                                value="{{ technology.user_trained }}"
-                                required
+                                placeholder="Please specify the system type"
+
+                                value="{% if technology.system_type not in [
+                                    'Web System',
+                                    'Web Application',
+                                    'Desktop Application',
+                                    'Mobile Application'
+                                ] %}{{ technology.system_type }}{% endif %}"
+
+                                {% if technology.system_type not in [
+                                    "Web System",
+                                    "Web Application",
+                                    "Desktop Application",
+                                    "Mobile Application"
+                                ] %}
+                                    required
+                                {% endif %}
                             >
 
                         </div>
 
                     </div>
 
+
+                    <!-- Deployment Status and Partner Institution -->
                     <div class="row">
 
                         <div class="col-md-6 mb-3">
@@ -231,14 +219,18 @@
                             </label>
 
                             <select
-                                name="usage_status"
+                                name="deployment_status"
                                 class="form-select"
                                 required
                             >
 
+                                <option value="">
+                                    Select Status
+                                </option>
+
                                 <option
                                     value="Active"
-                                    {% if technology.usage_status == "Active" %}
+                                    {% if technology.deployment_status == "Active" %}
                                         selected
                                     {% endif %}
                                 >
@@ -247,7 +239,7 @@
 
                                 <option
                                     value="Inactive"
-                                    {% if technology.usage_status == "Inactive" %}
+                                    {% if technology.deployment_status == "Inactive" %}
                                         selected
                                     {% endif %}
                                 >
@@ -258,22 +250,164 @@
 
                         </div>
 
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="form-label">
+                                Partner Institution
+                            </label>
+
+                            <input
+                                type="text"
+                                name="partner_institution"
+                                class="form-control"
+                                value="{{ technology.partner_institution }}"
+                                required
+                            >
+
+                        </div>
+
                     </div>
 
-                    <div class="mb-4">
 
-                        <label class="form-label">
-                            Description
-                        </label>
+                    <hr>
 
-                        <textarea
-                            name="description"
-                            class="form-control"
-                            rows="3"
-                        >{{ technology.description or "" }}</textarea>
+                    <h5 class="mb-3">
+                        Beneficiary Information
+                    </h5>
+
+
+                    <!-- Beneficiary Name and Position -->
+                    <div class="row">
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="form-label">
+                                Beneficiary Name
+                            </label>
+
+                            <input
+                                type="text"
+                                name="beneficiary_name"
+                                class="form-control"
+                                value="{{ technology.beneficiary_name or '' }}"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="form-label">
+                                Beneficiary Position
+                            </label>
+
+                            <input
+                                type="text"
+                                name="beneficiary_position"
+                                class="form-control"
+                                value="{{ technology.beneficiary_position or '' }}"
+                                required
+                            >
+
+                        </div>
 
                     </div>
-                    <div class="d-flex gap-2">
+
+
+                    <!-- Beneficiary Phone Number -->
+                    <div class="row">
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="form-label">
+                                Beneficiary Phone Number
+                            </label>
+
+                            <input
+                                type="tel"
+                                name="beneficiary_phone_number"
+                                class="form-control"
+                                placeholder="e.g. 09123456789"
+                                value="{{ technology.beneficiary_phone_number or '' }}"
+                                required
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <hr>
+
+                    <h5 class="mb-3">
+                        Users Trained
+                    </h5>
+
+
+                    <!-- Female, Male and Total -->
+                    <div class="row">
+
+                        <div class="col-md-4 mb-3">
+
+                            <label class="form-label">
+                                Number of Female Users Trained
+                            </label>
+
+                            <input
+                                type="number"
+                                name="female_users_trained"
+                                id="female_users_trained"
+                                class="form-control"
+                                min="0"
+                                value="{{ technology.female_users_trained or 0 }}"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="col-md-4 mb-3">
+
+                            <label class="form-label">
+                                Number of Male Users Trained
+                            </label>
+
+                            <input
+                                type="number"
+                                name="male_users_trained"
+                                id="male_users_trained"
+                                class="form-control"
+                                min="0"
+                                value="{{ technology.male_users_trained or 0 }}"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="col-md-4 mb-3">
+
+                            <label class="form-label">
+                                Total Users Trained
+                            </label>
+
+                            <input
+                                type="number"
+                                id="total_users_trained"
+                                class="form-control"
+                                value="{{ technology.total_users_trained or 0 }}"
+                                readonly
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Buttons -->
+                    <div class="d-flex gap-2 mt-3">
 
                         <a
                             href="{{ url_for('main.TechnologyTransfer') }}"
@@ -298,25 +432,33 @@
         </div>
 
     </div>
-
 </div>
 
-<script>
 
+<script>
 document.addEventListener('DOMContentLoaded', function () {
 
-    const systemType = document.getElementById('system_type');
-    const otherDiv = document.getElementById('otherSystemTypeDiv');
-    const otherInput = document.getElementById('other_system_type');
+    // Other System Type
+    const systemType =
+        document.getElementById('system_type');
+
+    const otherDiv =
+        document.getElementById('otherSystemTypeDiv');
+
+    const otherInput =
+        document.getElementById('other_system_type');
+
 
     systemType.addEventListener('change', function () {
 
         if (this.value === 'Other') {
-            otherDiv.style.display = 'block';
+
+            otherDiv.style.display = 'flex';
             otherInput.required = true;
             otherInput.focus();
 
         } else {
+
             otherDiv.style.display = 'none';
             otherInput.required = false;
             otherInput.value = '';
@@ -325,8 +467,44 @@ document.addEventListener('DOMContentLoaded', function () {
 
     });
 
-});
 
+    // Automatic Total Users Trained
+    const femaleInput =
+        document.getElementById('female_users_trained');
+
+    const maleInput =
+        document.getElementById('male_users_trained');
+
+    const totalInput =
+        document.getElementById('total_users_trained');
+
+
+    function calculateTotal() {
+
+        const female =
+            parseInt(femaleInput.value) || 0;
+
+        const male =
+            parseInt(maleInput.value) || 0;
+
+        totalInput.value = female + male;
+
+    }
+
+
+    femaleInput.addEventListener(
+        'input',
+        calculateTotal
+    );
+
+    maleInput.addEventListener(
+        'input',
+        calculateTotal
+    );
+
+    calculateTotal();
+
+});
 </script>
 
 {% endblock %}
