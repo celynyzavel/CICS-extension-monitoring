@@ -1,0 +1,364 @@
+{% extends base_template %}
+
+{% block title %}Budget Utilization{% endblock %}
+
+{% block content %}
+<style>
+    .budget-page { max-width: 1250px; margin: 0 auto; }
+    .budget-head { display:flex; justify-content:space-between; align-items:flex-start; gap:18px; margin-bottom:22px; }
+    .budget-head h2 { margin:0; font-size:27px; font-weight:800; color:#111d73; }
+    .budget-head p { margin:5px 0 0; color:#526080; }
+    .budget-tabs { display:flex; border:1px solid #dbe3f3; border-radius:12px 12px 0 0; overflow:hidden; background:#fff; }
+    .budget-tab { padding:15px 28px; color:#1b2b73; text-decoration:none; border-right:1px solid #e4e9f4; font-weight:700; }
+    .budget-tab.active { color:#0d47ff; box-shadow:inset 0 -3px #0d47ff; background:#fbfcff; }
+    .budget-card { background:#fff; border:1px solid #dfe6f3; border-radius:12px; padding:20px; margin-bottom:16px; box-shadow:0 2px 10px rgba(30,55,120,.03); }
+    .budget-card h3 { font-size:16px; font-weight:800; color:#111d73; margin:0 0 16px; }
+    .budget-main { display:grid; grid-template-columns: 1.05fr .9fr 1fr; gap:18px; align-items:stretch; }
+    .budget-highlight { border:1px solid #dce5f7; border-radius:10px; padding:22px; background:linear-gradient(135deg,#f4f7ff,#fff); }
+    .budget-highlight .label { font-size:13px; font-weight:700; color:#111d73; text-transform:uppercase; letter-spacing:.3px; }
+    .budget-highlight .amount { font-size:31px; font-weight:900; color:#1454e8; margin-top:10px; }
+    .budget-highlight .year { margin-top:5px; font-weight:700; color:#1b2b73; }
+    .budget-meta { padding:7px 5px; }
+    .budget-meta-row { display:flex; gap:12px; margin-bottom:19px; }
+    .budget-meta-row i { color:#1454e8; font-size:20px; }
+    .budget-meta-row small { display:block; color:#697593; margin-bottom:3px; }
+    .budget-meta-row strong { color:#18245f; }
+    .status-pill { display:inline-block; padding:5px 14px; border-radius:18px; background:#e3f8ed; color:#16804d; font-weight:800; font-size:12px; border:1px solid #93e1b8; }
+    .info-box { background:#f3f7ff; border:1px solid #dce6fb; border-radius:9px; padding:14px; color:#27458f; font-size:13px; line-height:1.55; margin-top:18px; }
+    .btn-budget { border:1px solid #8eabff; color:#0847e8; background:#fff; border-radius:8px; padding:9px 15px; font-weight:800; }
+    .btn-budget:hover { background:#eef3ff; color:#0847e8; }
+    .summary-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:15px; }
+    .summary-box { border:1px solid #dfe6f3; border-radius:10px; padding:16px; background:#fbfcff; }
+    .summary-box .icon { width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:12px;background:#eaf0ff;color:#1454e8; }
+    .summary-box:nth-child(2) .icon { background:#e7f8ee;color:#16804d; }
+    .summary-box:nth-child(3) .icon { background:#fff1df;color:#e78300; }
+    .summary-box:nth-child(4) .icon { background:#efe6ff;color:#6330cc; }
+    .summary-box small { color:#687492; display:block; }
+    .summary-box strong { font-size:20px; color:#14205e; }
+    .summary-box .sub { font-size:12px; margin-top:3px; color:#5d6883; }
+    .table-wrap { overflow:auto; }
+    .budget-table { width:100%; border-collapse:collapse; }
+    .budget-table th,.budget-table td { border:1px solid #e0e6f1; padding:11px 12px; font-size:13px; }
+    .budget-table th { background:#f5f7fc; color:#15225f; font-weight:800; }
+    .budget-table td { color:#27335f; }
+    .amount-cell { font-weight:800; white-space:nowrap; }
+    .bar-wrap { height:9px; background:#e7ebf4; border-radius:20px; overflow:hidden; margin-top:6px; }
+    .bar { height:100%; background:#1454e8; border-radius:20px; }
+    .note { background:#fffaf0; border:1px solid #f6e0ad; border-radius:10px; padding:14px 16px; color:#72511a; font-size:13px; }
+    .form-label { font-weight:700; color:#18245f; }
+    .empty-budget { text-align:center; padding:30px; color:#697593; }
+    @media(max-width:950px) {
+        .budget-main,.summary-grid { grid-template-columns:1fr 1fr; }
+        .budget-highlight { grid-column:1/-1; }
+    }
+    @media(max-width:650px) {
+        .budget-main,.summary-grid { grid-template-columns:1fr; }
+        .budget-head { flex-direction:column; }
+        .budget-tab { flex:1; text-align:center; padding:13px 10px; }
+    }
+</style>
+
+<div class="budget-page">
+
+    <div class="budget-head">
+        <div>
+            <h2>Budget Utilization</h2>
+            <p>View and manage the allocated budget and utilization for extension programs, projects, and activities.</p>
+        </div>
+    </div>
+
+    {% include "partials/_flash_messages.html" %}
+
+    <div class="budget-tabs">
+        <a class="budget-tab active" href="{{ url_for('main.BudgetUtilization', year=fiscal_year) }}">
+            <i class="bi bi-bar-chart-line me-1"></i> Overview / Charts
+        </a>
+        {% if can_allocate %}
+        <a class="budget-tab" href="#allocateBudget">
+            <i class="bi bi-wallet2 me-1"></i> Allocate Budget
+        </a>
+        {% elif can_submit %}
+        <a class="budget-tab" href="#submitBudget">
+            <i class="bi bi-plus-circle me-1"></i> Submit Budget
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="budget-card" style="border-radius:0 12px 12px 12px;">
+
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+            <h3 class="mb-0">Overall Budget Allocation</h3>
+            <form method="GET" class="d-flex gap-2 align-items-center">
+                <label class="small fw-bold text-muted">Fiscal Year</label>
+                <select name="year" class="form-select form-select-sm" onchange="this.form.submit()">
+                    {% if not allocations %}
+                    <option value="{{ fiscal_year }}">{{ fiscal_year }}</option>
+                    {% endif %}
+                    {% for a in allocations %}
+                    <option value="{{ a.fiscal_year }}" {% if a.fiscal_year == fiscal_year %}selected{% endif %}>{{ a.fiscal_year }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+
+        <div class="budget-main">
+            <div class="budget-highlight">
+                <div class="label">Overall Allocated Budget</div>
+                <div class="amount">₱ {{ "{:,.2f}".format(overall) if overall is defined else "{:,.2f}".format(allocation.amount if allocation else 0) }}</div>
+                <div class="year">Fiscal Year {{ fiscal_year }}</div>
+            </div>
+
+            <div class="budget-meta">
+                <div class="budget-meta-row">
+                    <i class="bi bi-person-circle"></i>
+                    <div><small>Allocated By</small><strong>{{ allocation.allocator.first_name ~ ' ' ~ allocation.allocator.last_name if allocation else '—' }}</strong></div>
+                </div>
+                <div class="budget-meta-row">
+                    <i class="bi bi-calendar3"></i>
+                    <div><small>Date Allocated</small><strong>{{ allocation.date_allocated.strftime('%B %d, %Y') if allocation else '—' }}</strong></div>
+                </div>
+                <div class="budget-meta-row">
+                    <i class="bi bi-clock-history"></i>
+                    <div><small>Last Updated</small><strong>{{ allocation.updated_at.strftime('%B %d, %Y %I:%M %p') if allocation else '—' }}</strong></div>
+                </div>
+            </div>
+
+            <div>
+                <span class="status-pill">{{ allocation.status if allocation else 'Not Allocated' }}</span>
+                {% if can_allocate %}
+                <button class="btn-budget float-end" data-bs-toggle="modal" data-bs-target="#allocateModal">
+                    <i class="bi bi-pencil me-1"></i> Update Budget
+                </button>
+                {% endif %}
+                <div class="info-box">
+                    <i class="bi bi-info-circle me-1"></i>
+                    This is the total budget allocated for CICS Extension programs and projects. Detailed budget breakdown and utilization are submitted by Faculty Extensionists.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="budget-card">
+        <h3>Budget Allocation History</h3>
+        <div class="table-wrap">
+            <table class="budget-table">
+                <thead>
+                    <tr>
+                        <th>#</th><th>Fiscal Year</th><th>Overall Allocated Budget</th>
+                        <th>Date Allocated</th><th>Allocated By</th><th>Status</th><th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for a in allocations %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td><strong>{{ a.fiscal_year }}</strong></td>
+                        <td class="amount-cell">₱ {{ "{:,.2f}".format(a.amount|float) }}</td>
+                        <td>{{ a.date_allocated.strftime('%B %d, %Y') }}</td>
+                        <td>{{ a.allocator.first_name }} {{ a.allocator.last_name }}</td>
+                        <td><span class="status-pill">{{ a.status }}</span></td>
+                        <td><a class="btn btn-sm btn-outline-primary" href="{{ url_for('main.BudgetUtilization', year=a.fiscal_year) }}"><i class="bi bi-eye"></i></a></td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="7" class="empty-budget">No budget allocation has been recorded yet.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="budget-card">
+        <h3>Budget Utilization Details <span class="fw-normal text-muted">(Current FY {{ fiscal_year }})</span></h3>
+
+        <div class="summary-grid">
+            <div class="summary-box">
+                <div class="icon"><i class="bi bi-wallet2"></i></div>
+                <small>{{ 'Your Allocated Budget Items' if can_submit else 'Total Allocated Budget' }}</small>
+                <strong>₱ {{ "{:,.2f}".format((item_allocated if can_submit else overall)|float) }}</strong>
+                <div class="sub">{{ items|length }} budget item{{ '' if items|length == 1 else 's' }}</div>
+            </div>
+            <div class="summary-box">
+                <div class="icon"><i class="bi bi-clipboard2-check"></i></div>
+                <small>Total Utilized</small>
+                <strong>₱ {{ "{:,.2f}".format(utilized) }}</strong>
+                <div class="sub">{{ "{:.1f}".format(utilization_rate) }}% of overall allocation</div>
+            </div>
+            <div class="summary-box">
+                <div class="icon"><i class="bi bi-pie-chart"></i></div>
+                <small>Remaining Balance</small>
+                <strong>₱ {{ "{:,.2f}".format(remaining) }}</strong>
+                <div class="sub">{{ "{:.1f}".format(100 - utilization_rate if utilization_rate <= 100 else 0) }}% remaining</div>
+            </div>
+            <div class="summary-box">
+                <div class="icon"><i class="bi bi-receipt"></i></div>
+                <small>Total Budget Items</small>
+                <strong>{{ items|length }}</strong>
+                <div class="sub">From faculty submissions</div>
+            </div>
+        </div>
+
+        <div class="info-box mt-3">
+            <i class="bi bi-info-circle me-1"></i>
+            Budget utilization and breakdown per program, project, or activity are based on records submitted by Faculty Extensionists.
+        </div>
+    </div>
+
+    {% if can_allocate %}
+    <div class="budget-card">
+        <h3>Faculty Budget Submissions</h3>
+        {% if items %}
+        <div class="table-wrap">
+            <table class="budget-table">
+                <thead>
+                    <tr>
+                        <th>Faculty</th><th>Program / Project / Activity</th><th>Category</th>
+                        <th>Description</th><th>Allocated</th><th>Utilized</th><th>Remaining</th><th>Utilization</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for item in items %}
+                    {% set parent_name = item.program.program_name if item.program else (item.project.project_name if item.project else (item.activity.activity_name if item.activity else '—')) %}
+                    {% set pct = ((item.utilized_amount|float / item.allocated_amount|float) * 100) if item.allocated_amount|float else 0 %}
+                    <tr>
+                        <td>{{ item.user.first_name }} {{ item.user.last_name }}</td>
+                        <td>{{ parent_name }}</td>
+                        <td>{{ item.category }}</td>
+                        <td>{{ item.description }}</td>
+                        <td class="amount-cell">₱ {{ "{:,.2f}".format(item.allocated_amount|float) }}</td>
+                        <td class="amount-cell">₱ {{ "{:,.2f}".format(item.utilized_amount|float) }}</td>
+                        <td class="amount-cell">₱ {{ "{:,.2f}".format(item.remaining_amount|float) }}</td>
+                        <td style="min-width:120px;">{{ "{:.1f}".format(pct) }}%<div class="bar-wrap"><div class="bar" style="width:{{ [pct,100]|min }}%"></div></div></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-budget">No faculty budget breakdowns have been submitted for {{ fiscal_year }}.</div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if can_submit %}
+    <div class="budget-card" id="submitBudget">
+        <h3>Submit Budget Breakdown</h3>
+        <p class="text-muted small">Encode the budget allocated and utilized for a program, project, or activity you conducted.</p>
+
+        <form method="POST" action="{{ url_for('main.BudgetUtilization_item_add') }}">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Program / Project / Activity</label>
+                    <select class="form-select" name="parent" required>
+                        <option value="">Select record</option>
+                        {% if programs %}
+                        <optgroup label="Programs">
+                            {% for p in programs %}<option value="program:{{ p.program_id }}">{{ p.program_name }}</option>{% endfor %}
+                        </optgroup>
+                        {% endif %}
+                        {% if projects %}
+                        <optgroup label="Projects">
+                            {% for p in projects %}<option value="project:{{ p.project_id }}">{{ p.project_name }}</option>{% endfor %}
+                        </optgroup>
+                        {% endif %}
+                        {% if activities %}
+                        <optgroup label="Activities">
+                            {% for a in activities %}<option value="activity:{{ a.activity_id }}">{{ a.activity_name }}</option>{% endfor %}
+                        </optgroup>
+                        {% endif %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Budget Category</label>
+                    <select class="form-select" name="category" required>
+                        <option value="">Select category</option>
+                        <option>Training Materials</option>
+                        <option>Transportation</option>
+                        <option>Food and Meals</option>
+                        <option>Supplies</option>
+                        <option>Equipment</option>
+                        <option>Communication</option>
+                        <option>Honorarium</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Description</label>
+                    <input class="form-control" name="description" placeholder="e.g., Training materials and printed modules" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Allocated Amount (₱)</label>
+                    <input class="form-control" type="number" name="allocated_amount" min="0.01" step="0.01" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Utilized Amount (₱)</label>
+                    <input class="form-control" type="number" name="utilized_amount" min="0" step="0.01" value="0" required>
+                </div>
+            </div>
+            <div class="mt-3">
+                <button class="btn btn-primary" type="submit"><i class="bi bi-save me-1"></i> Submit Budget</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="budget-card">
+        <h3>My Budget Entries</h3>
+        {% if items %}
+        <div class="table-wrap">
+            <table class="budget-table">
+                <thead><tr><th>Record</th><th>Category</th><th>Description</th><th>Allocated</th><th>Utilized</th><th>Remaining</th><th>Action</th></tr></thead>
+                <tbody>
+                {% for item in items %}
+                    {% set parent_name = item.program.program_name if item.program else (item.project.project_name if item.project else (item.activity.activity_name if item.activity else '—')) %}
+                    <tr>
+                        <td>{{ parent_name }}</td>
+                        <td>{{ item.category }}</td>
+                        <td>{{ item.description }}</td>
+                        <td class="amount-cell">₱ {{ "{:,.2f}".format(item.allocated_amount|float) }}</td>
+                        <td class="amount-cell">₱ {{ "{:,.2f}".format(item.utilized_amount|float) }}</td>
+                        <td class="amount-cell">₱ {{ "{:,.2f}".format(item.remaining_amount|float) }}</td>
+                        <td>
+                            <form method="POST" action="{{ url_for('main.BudgetUtilization_item_delete', item_id=item.budget_item_id) }}" onsubmit="return confirm('Delete this budget entry?');">
+                                <button class="btn btn-sm btn-outline-danger" type="submit"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-budget">You have not submitted any budget breakdowns for {{ fiscal_year }}.</div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if can_allocate %}
+    <div class="budget-card" id="allocateBudget">
+        <h3>Allocate / Update Overall Budget</h3>
+        <form method="POST" action="{{ url_for('main.BudgetUtilization_allocate') }}">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label">Fiscal Year</label>
+                    <input class="form-control" type="number" name="fiscal_year" value="{{ fiscal_year }}" min="2000" required>
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label">Overall Allocated Budget (₱)</label>
+                    <input class="form-control" type="number" name="amount" value="{{ allocation.amount if allocation else '' }}" min="0" step="0.01" required>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-primary w-100" type="submit"><i class="bi bi-wallet2 me-1"></i> Save Budget</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="budget-card">
+        <div class="note">
+            <strong><i class="bi bi-lightbulb me-1"></i> Note:</strong><br>
+            The Extension Coordinator allocates the overall budget only. Faculty Extensionists encode the budget breakdown, expenses, and utilization for their programs, projects, and activities.
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
