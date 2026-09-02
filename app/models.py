@@ -186,3 +186,114 @@ class Activity(db.Model):
 
     def __repr__(self):
         return f"<Activity {self.activity_name}>"
+
+
+class BudgetAllocation(db.Model):
+    """Overall annual budget allocated by the Extension Coordinator."""
+    __tablename__ = "budget_allocations"
+
+    budget_id = db.Column(db.Integer, primary_key=True)
+    fiscal_year = db.Column(db.Integer, nullable=False, unique=True)
+    amount = db.Column(db.Numeric(14, 2), nullable=False, default=0)
+    allocated_by = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    date_allocated = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    status = db.Column(db.String(20), nullable=False, default="Active")
+    updated_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow
+    )
+
+    allocator = db.relationship(
+        "User",
+        backref=db.backref("budget_allocations", lazy=True)
+    )
+
+    @property
+    def is_active(self):
+        return self.status == "Active"
+
+    def __repr__(self):
+        return f"<BudgetAllocation {self.fiscal_year}: {self.amount}>"
+
+
+class BudgetItem(db.Model):
+    """Faculty-submitted budget breakdown for an extension program/project/activity."""
+    __tablename__ = "budget_items"
+
+    budget_item_id = db.Column(db.Integer, primary_key=True)
+
+    # Links each faculty budget item to the coordinator's annual allocation.
+    # This matches the existing budget_items table in the shared database.
+    budget_id = db.Column(
+        db.Integer,
+        db.ForeignKey("budget_allocations.budget_id"),
+        nullable=False
+    )
+
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    fiscal_year = db.Column(db.Integer, nullable=False)
+
+    program_id = db.Column(
+        db.Integer,
+        db.ForeignKey("programs.program_id", ondelete="SET NULL"),
+        nullable=True
+    )
+    project_id = db.Column(
+        db.Integer,
+        db.ForeignKey("projects.project_id", ondelete="SET NULL"),
+        nullable=True
+    )
+    activity_id = db.Column(
+        db.Integer,
+        db.ForeignKey("activities.activity_id", ondelete="SET NULL"),
+        nullable=True
+    )
+
+    category = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.String(255), nullable=False)
+    allocated_amount = db.Column(db.Numeric(14, 2), nullable=False, default=0)
+    utilized_amount = db.Column(db.Numeric(14, 2), nullable=False, default=0)
+    supporting_document = db.Column(db.String(255), nullable=True)
+
+    created_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=datetime.utcnow
+    )
+    updated_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow
+    )
+
+    budget = db.relationship(
+        "BudgetAllocation",
+        backref=db.backref("budget_items", lazy=True)
+    )
+
+    user = db.relationship(
+        "User",
+        backref=db.backref("budget_items", lazy=True)
+    )
+    program = db.relationship(
+        "Program",
+        backref=db.backref("budget_items", lazy=True)
+    )
+    project = db.relationship(
+        "Project",
+        backref=db.backref("budget_items", lazy=True)
+    )
+    activity = db.relationship(
+        "Activity",
+        backref=db.backref("budget_items", lazy=True)
+    )
+
+    @property
+    def remaining_amount(self):
+        return self.allocated_amount - self.utilized_amount
+
+    def __repr__(self):
+        return f"<BudgetItem {self.category}: {self.allocated_amount}>"
