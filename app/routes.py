@@ -11,7 +11,9 @@ from app.models import (
     TechnologyTransfer as TechnologyTransfer_model,
     Program as Program_model,
     Project as Project_model,
-    Activity as Activity_model
+    Activity as Activity_model,
+    BudgetAllocation as BudgetAllocation_model,
+    BudgetItem as BudgetItem_model
 )
 
 main = Blueprint("main", __name__)
@@ -1540,3 +1542,351 @@ def delete_activity(activity_id):
 
     flash("Extension activity deleted successfully.", "success")
     return redirect(url_for("main.Activity"))
+
+# ============================================================
+# BUDGET UTILIZATION
+# ============================================================
+
+def _budget_fiscal_year():
+    return datetime.utcnow().year
+
+
+def _budget_totals(fiscal_year, faculty_only=False):
+    query = BudgetItem_model.query.filter_by(fiscal_year=fiscal_year)
+
+    if faculty_only:
+        query = query.filter_by(user_id=current_user.id)
+
+    items = query.order_by(BudgetItem_model.created_at.desc()).all()
+
+    allocated = sum(float(item.allocated_amount or 0) for item in items)
+    utilized = sum(float(item.utilized_amount or 0) for item in items)
+
+    return items, allocated, utilized
+
+
+def _budget_parent_options():
+    if current_user.role == "FACULTY":
+        programs = Program_model.query.filter_by(
+            user_id=current_user.id
+        ).order_by(Program_model.program_name.asc()).all()
+
+        projects = Project_model.query.filter_by(
+            user_id=current_user.id
+        ).order_by(Project_model.project_name.asc()).all()
+
+        activities = Activity_model.query.filter_by(
+            user_id=current_user.id
+        ).order_by(Activity_model.activity_name.asc()).all()
+
+    else:
+        programs = Program_model.query.order_by(
+            Program_model.program_name.asc()
+        ).all()
+
+        projects = Project_model.query.order_by(
+            Project_model.project_name.asc()
+        ).all()
+
+        activities = Activity_model.query.order_by(
+            Activity_model.activity_name.asc()
+        ).all()
+
+    return programs, projects, activities
+
+
+@main.route("/budget-utilization")
+@login_required
+def BudgetUtilization():
+    if current_user.role not in ("FACULTY", "COORDINATOR", "DEAN"):
+        flash("You are not authorized to view budget utilization.", "danger")
+        return redirect(url_for("main.index"))
+
+    fiscal_year = request.args.get("year", type=int) or _budget_fiscal_year()
+
+    allocation = BudgetAllocation_model.query.filter_by(
+        fiscal_year=fiscal_year
+    ).first()
+
+    allocations = BudgetAllocation_model.query.order_by(
+        BudgetAllocation_model.fiscal_year.desc()
+    ).all()
+
+    faculty_only = current_user.role == "FACULTY"
+    items, item_allocated, utilized = _budget_totals(
+        fiscal_year,
+        faculty_only=faculty_only
+    )
+
+    # Coordinator and Dean: overall annual allocation.
+    # Faculty: total of that faculty member's submitted breakdown.
+    if current_user.role == "FACULTY":
+        overall = item_allocated
+    else:
+        overall = float(allocation.amount or 0) if allocation else 0.0
+
+    remaining = max(0.0, overall - utilized)
+    utilization_rate = (utilized / overall * 100) if overall > 0 else 0.0
+    utilization_rate = min(utilization_rate, 100.0)
+
+    programs, projects, activities = _budget_parent_options()
+
+    if current_user.role == "COORDINATOR":
+        base_template = "base_coordinator.html"
+    elif current_user.role == "DEAN":
+        base_template = "base_dean.html"
+    else:
+        base_template = "base_faculty.html"
+
+    return render_template(
+        "BudgetUtilization.html",
+        allocation=allocation,
+        allocations=allocations,
+        items=items,
+        item_allocated=item_allocated,
+        utilized=utilized,
+        overall=overall,
+        remaining=remaining,
+        utilization_rate=utilization_rate,
+        fiscal_year=fiscal_year,
+        programs=programs,
+        projects=projects,
+        activities=activities,
+        base_template=base_template,
+        can_allocate=current_user.role == "COORDINATOR",
+        can_submit=current_user.role == "FACULTY",
+        is_dean=current_user.role == "DEAN"
+    )
+
+
+@main.route("/budget-utilization/allocate", methods=["POST"])
+@login_required
+def BudgetUtilization_allocate():
+    if current_user.role != "COORDINATOR":
+        flash("Only the Extension Coordinator can allocate the overall budget.", "danger")
+        return redirect(url_for("main.BudgetUtilization"))
+
+    try:
+        fiscal_year = int(
+            request.form.get("fiscal_year", _budget_fiscal_year())
+        )
+        amount = float(request.form.get("amount", 0))
+    except (TypeError, ValueError):
+        flash("Please enter a valid fiscal year and budget amount.", "danger")
+        return redirect(url_for("main.BudgetUtilization"))
+
+    if fiscal_year < 2000:
+        flash("Please enter a valid fiscal year.", "danger")
+        return redirect(url_for("main.BudgetUtilization"))
+
+    if amount < 0:
+        flash("Budget amount cannot be negative.", "danger")
+        return redirect(url_for("main.BudgetUtilization"))
+
+    allocation = BudgetAllocation_model.query.filter_by(
+        fiscal_year=fiscal_year
+    ).first()
+
+    if allocation:
+        allocation.amount = amount
+        allocation.allocated_by = current_user.id
+        allocation.status = "Active"
+        allocation.updated_at = datetime.utcnow()
+    else:
+        allocation = BudgetAllocation_model(
+            fiscal_year=fiscal_year,
+            amount=amount,
+            allocated_by=current_user.id,
+            date_allocated=datetime.utcnow(),
+            status="Active",
+            updated_at=datetime.utcnow()
+        )
+        db.session.add(allocation)
+
+    for old in BudgetAllocation_model.query.filter(
+        BudgetAllocation_model.fiscal_year < fiscal_year,
+        BudgetAllocation_model.status == "Active"
+    ).all():
+        old.status = "Completed"
+
+    try:
+        db.session.commit()
+    except Exception as exc:
+        db.session.rollback()
+        print("Budget allocation error:", exc)
+        flash("An error occurred while saving the budget allocation.", "danger")
+        return redirect(url_for("main.BudgetUtilization", year=fiscal_year))
+
+    flash(
+        f"Overall budget for Fiscal Year {fiscal_year} was saved successfully.",
+        "success"
+    )
+    return redirect(url_for("main.BudgetUtilization", year=fiscal_year))
+
+
+@main.route("/budget-utilization/items/add", methods=["POST"])
+@login_required
+def BudgetUtilization_item_add():
+    if current_user.role != "FACULTY":
+        flash("Only Faculty Extensionists can submit budget breakdowns.", "danger")
+        return redirect(url_for("main.BudgetUtilization"))
+
+    fiscal_year = (
+        request.form.get("fiscal_year", type=int)
+        or _budget_fiscal_year()
+    )
+
+    # IMPORTANT: every BudgetItem must belong to the active annual allocation.
+    allocation = BudgetAllocation_model.query.filter_by(
+        fiscal_year=fiscal_year,
+        status="Active"
+    ).first()
+
+    if allocation is None:
+        flash(
+            f"No active budget allocation exists for Fiscal Year {fiscal_year}. "
+            "Please wait for the Extension Coordinator to allocate the budget.",
+            "warning"
+        )
+        return redirect(url_for("main.BudgetUtilization", year=fiscal_year))
+
+    category = request.form.get("category", "").strip()
+    description = request.form.get("description", "").strip()
+    parent = request.form.get("parent", "").strip()
+
+    try:
+        allocated_amount = float(
+            request.form.get("allocated_amount", 0)
+        )
+        utilized_amount = float(
+            request.form.get("utilized_amount", 0)
+        )
+    except (TypeError, ValueError):
+        flash("Please enter valid budget amounts.", "danger")
+        return redirect(url_for("main.BudgetUtilization", year=fiscal_year))
+
+    if not category or not description:
+        flash("Please complete the budget category and description.", "danger")
+        return redirect(url_for("main.BudgetUtilization", year=fiscal_year))
+
+    if allocated_amount <= 0:
+        flash("Allocated amount must be greater than zero.", "danger")
+        return redirect(url_for("main.BudgetUtilization", year=fiscal_year))
+
+    if utilized_amount < 0 or utilized_amount > allocated_amount:
+        flash(
+            "Utilized amount must be between zero and the allocated amount.",
+            "danger"
+        )
+        return redirect(url_for("main.BudgetUtilization", year=fiscal_year))
+
+    program_id = None
+    project_id = None
+    activity_id = None
+
+    if ":" in parent:
+        kind, raw_id = parent.split(":", 1)
+        try:
+            parent_id = int(raw_id)
+        except (TypeError, ValueError):
+            parent_id = None
+
+        if parent_id:
+            if kind == "program":
+                obj = Program_model.query.filter_by(
+                    program_id=parent_id,
+                    user_id=current_user.id
+                ).first()
+                if obj:
+                    program_id = obj.program_id
+
+            elif kind == "project":
+                obj = Project_model.query.filter_by(
+                    project_id=parent_id,
+                    user_id=current_user.id
+                ).first()
+                if obj:
+                    project_id = obj.project_id
+
+            elif kind == "activity":
+                obj = Activity_model.query.filter_by(
+                    activity_id=parent_id,
+                    user_id=current_user.id
+                ).first()
+                if obj:
+                    activity_id = obj.activity_id
+
+    if not any((program_id, project_id, activity_id)):
+        flash("Please select a valid program, project, or activity.", "danger")
+        return redirect(url_for("main.BudgetUtilization", year=fiscal_year))
+
+    # Check the shared annual utilization before accepting the new entry.
+    _, _, current_utilized = _budget_totals(
+        fiscal_year,
+        faculty_only=False
+    )
+
+    overall_budget = float(allocation.amount or 0)
+
+    if current_utilized + utilized_amount > overall_budget:
+        flash(
+            "The submitted utilized amount would exceed the overall allocated budget.",
+            "danger"
+        )
+        return redirect(url_for("main.BudgetUtilization", year=fiscal_year))
+
+    # IMPORTANT FIX:
+    # budget_id is required by the database, so explicitly link the item
+    # to the coordinator's annual BudgetAllocation record.
+    item = BudgetItem_model(
+        budget_id=allocation.budget_id,
+        user_id=current_user.id,
+        fiscal_year=fiscal_year,
+        program_id=program_id,
+        project_id=project_id,
+        activity_id=activity_id,
+        category=category,
+        description=description,
+        allocated_amount=allocated_amount,
+        utilized_amount=utilized_amount,
+        supporting_document=None
+    )
+
+    try:
+        db.session.add(item)
+        db.session.commit()
+    except Exception as exc:
+        db.session.rollback()
+        print("Budget item error:", exc)
+        flash("An error occurred while saving the budget entry.", "danger")
+        return redirect(url_for("main.BudgetUtilization", year=fiscal_year))
+
+    flash("Budget breakdown submitted successfully.", "success")
+    return redirect(url_for("main.BudgetUtilization", year=fiscal_year))
+
+
+@main.route("/budget-utilization/items/delete/<int:item_id>", methods=["POST"])
+@login_required
+def BudgetUtilization_item_delete(item_id):
+    if current_user.role != "FACULTY":
+        flash("Only Faculty Extensionists can delete their budget entries.", "danger")
+        return redirect(url_for("main.BudgetUtilization"))
+
+    item = BudgetItem_model.query.get_or_404(item_id)
+
+    if item.user_id != current_user.id:
+        flash("You can only delete your own budget entries.", "danger")
+        return redirect(url_for("main.BudgetUtilization"))
+
+    try:
+        db.session.delete(item)
+        db.session.commit()
+    except Exception as exc:
+        db.session.rollback()
+        print("Budget delete error:", exc)
+        flash("An error occurred while deleting the budget entry.", "danger")
+        return redirect(url_for("main.BudgetUtilization"))
+
+    flash("Budget entry deleted successfully.", "success")
+    return redirect(url_for("main.BudgetUtilization"))
+
