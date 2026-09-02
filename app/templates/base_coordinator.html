@@ -7,7 +7,7 @@
 <a class="sidebar-link {% if request.endpoint == 'main.Activity' %}active{% endif %}" href="{{ url_for('main.Activity') }}"><i class="bi bi-calendar-event"></i> Activities</a>
 <a class="sidebar-link" href="#"><i class="bi bi-graph-up"></i> Training Impact Metrics</a>
 <a class="sidebar-link {% if request.endpoint in ['main.TechnologyTransfer','main.TechnologyTransfer_add','main.TechnologyTransfer_edit'] %}active{% endif %}" href="{{ url_for('main.TechnologyTransfer') }}"><i class="bi bi-arrow-left-right"></i> Technology Transfer</a>
-<a class="sidebar-link" href="#"><i class="bi bi-wallet2"></i> Budget Utilization</a>
+<a class="sidebar-link {% if request.endpoint in ['main.BudgetUtilization', 'main.BudgetUtilization_allocate', 'main.BudgetUtilization_item_add', 'main.BudgetUtilization_item_delete'] %}active{% endif %}" href="{{ url_for('main.BudgetUtilization') }}"><i class="bi bi-wallet2"></i> Budget Utilization</a>
 <a class="sidebar-link" href="#"><i class="bi bi-bar-chart"></i> Reports &amp; Analytics</a>
 <a class="sidebar-link {% if request.endpoint in ['main.users','main.add_user','main.edit_user'] %}active{% endif %}" href="{{ url_for('main.users') }}"><i class="bi bi-people"></i> Users &amp; Roles</a>
 {% endblock %}
